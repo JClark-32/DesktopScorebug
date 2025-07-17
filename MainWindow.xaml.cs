@@ -7,6 +7,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Drawing;
+using System.Net.Http;
+using System.IO;
+using System.Runtime.InteropServices.JavaScript;
+using System.Security.AccessControl;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using Newtonsoft.Json.Linq;
+using String = System.String;
+using System.Diagnostics;
 
 namespace Desktop_Scorebug_WPF
 {
@@ -61,6 +69,9 @@ namespace Desktop_Scorebug_WPF
 
         const uint MONITOR_DEFAULTTONEAREST = 2;
 
+        private String team1LogoUrl = "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png";
+        private String team1Color = "#e31837";
+
         public MainWindow()
         {
             InitializeComponent();
@@ -72,6 +83,7 @@ namespace Desktop_Scorebug_WPF
             CenterTopOnScreen();
             MakeWindowClickThrough();
             TrackMouseAsync(_cts.Token);
+            getJson();
         }
 
         private RECT GetCurrentMonitorWorkArea()
@@ -164,6 +176,43 @@ namespace Desktop_Scorebug_WPF
         {
             _cts.Cancel();
             base.OnClosed(e);
+        }
+
+        private async void getJson()
+        {
+            string url = "https://cdn.espn.com/core/nfl/scoreboard?xhr=1&limit=50";
+            using HttpClient client = new HttpClient();
+            try
+            {
+                string json = await client.GetStringAsync(url);
+                JObject joResponse = JObject.Parse(json);
+                JObject ojObject = (JObject)joResponse["content"];
+                JObject ojObject1 = (JObject)ojObject["sbData"];
+
+                JArray array = (JArray)ojObject1["events"];
+                //JArray array1 = (JArray)array["competitions"];
+                //Debug.WriteLine(array1.ToString());
+
+                var nameValues = array.SelectTokens("$..name");
+                foreach (JObject eventObj in array)
+                {
+                    // This grabs the "name" property if it exists directly in the event object
+                    JToken nameToken = eventObj["name"];
+                    if (nameToken != null)
+                    {
+                        Debug.WriteLine(nameToken.ToString());
+                    }
+                }
+
+                //Debug.WriteLine(array.ToString());
+            }
+            catch
+            {
+                Console.WriteLine($"Request error");
+            }
+
+
+            
         }
 
         //Start color changing group 
@@ -295,24 +344,26 @@ namespace Desktop_Scorebug_WPF
 
         private void BGColorLoaded(object sender, RoutedEventArgs e)
         {
-            var TeamColor1 = System.Drawing.Color.FromArgb(0, 44, 95);
+            var TeamColor1 = System.Drawing.ColorTranslator.FromHtml(team1Color);
             RecolorImageWithAlpha(BackGroundTeamColors, TeamColor1);
         }
-        private void ScoreBarLoaded(object sender, RoutedEventArgs e)
-        {
-            var TeamColor1 = System.Drawing.Color.FromArgb(0, 37, 81);
-            RecolorImageWithAlpha(BackGroundTeamScoreBar1, TeamColor1);
-        }
+        
 
-        private void TeamLogoLoaded(object sender, RoutedEventArgs e)
+        private async void TeamLogoLoaded(object sender, RoutedEventArgs e)
         {
-            string ImagePath = "C:\\Users\\Jacob\\Desktop\\Desktop Scorebug WPF\\Desktop Scorebug WPF\\Images\\NFL Logos\\indianapolis-colts-logo-transparent.png";
+            using HttpClient httpClient = new();
+            byte[] imageBytes = await httpClient.GetByteArrayAsync(team1LogoUrl);
+
             BitmapImage fillBitmap = new BitmapImage();
 
-            fillBitmap.BeginInit();
-            fillBitmap.UriSource = new Uri(ImagePath, UriKind.Absolute);
-            fillBitmap.CacheOption = BitmapCacheOption.OnLoad; // Allows closing the file after loading
-            fillBitmap.EndInit();
+            using (var stream = new MemoryStream(imageBytes))
+            {
+                fillBitmap.BeginInit();
+                fillBitmap.CacheOption = BitmapCacheOption.OnLoad;
+                fillBitmap.StreamSource = stream;
+                fillBitmap.EndInit();
+                fillBitmap.Freeze(); // Optional but useful for threading
+            }
 
             FillImageWithImageMask(TeamLogo1, new Image { Source = fillBitmap });
         }
