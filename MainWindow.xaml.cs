@@ -5,6 +5,14 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media.Animation;
+using System.Drawing;
+using System.Windows.Media.Imaging;
+using System.Windows.Controls;
+using System.Windows.Media.Imaging;
+using System.Windows.Media;
+using System.Windows;
+using System;
+
 
 namespace Desktop_Scorebug_WPF
 {
@@ -46,6 +54,19 @@ namespace Desktop_Scorebug_WPF
             CenterTopOnScreen();
             MakeWindowClickThrough();
             TrackMouseAsync(_cts.Token);
+            
+            
+        }
+
+        private void BGColorLoaded(object sender, RoutedEventArgs e)
+        {
+            var TeamColor1 = System.Drawing.Color.FromArgb(0, 44, 95);
+            RecolorImageWithAlpha(BackGroundTeamColors, TeamColor1);
+        }
+        private void ScoreBarLoaded(object sender, RoutedEventArgs e)
+        {
+            var TeamColor1 = System.Drawing.Color.FromArgb(0, 37, 81);
+            RecolorImageWithAlpha(BackGroundTeamScoreBar1, TeamColor1);
         }
 
         private void CenterTopOnScreen()
@@ -89,6 +110,41 @@ namespace Desktop_Scorebug_WPF
 
                 await Task.Delay(50);
             }
+        }
+
+        private void RecolorImageWithAlpha(Image targetImage, System.Drawing.Color targetColor)
+        {
+            if (targetImage.Source is not BitmapSource sourceBitmap)
+                throw new InvalidOperationException("The provided Image does not contain a valid BitmapSource.");
+
+            // Ensure it's in BGRA32 format (32bpp with alpha)
+            FormatConvertedBitmap formattedBitmap = new FormatConvertedBitmap();
+            formattedBitmap.BeginInit();
+            formattedBitmap.Source = sourceBitmap;
+            formattedBitmap.DestinationFormat = PixelFormats.Bgra32;
+            formattedBitmap.EndInit();
+
+            int width = formattedBitmap.PixelWidth;
+            int height = formattedBitmap.PixelHeight;
+            int stride = width * 4;
+            byte[] pixelData = new byte[height * stride];
+
+            formattedBitmap.CopyPixels(pixelData, stride, 0);
+
+            for (int i = 0; i < pixelData.Length; i += 4)
+            {
+                byte alpha = pixelData[i + 3]; // Alpha stays
+
+                pixelData[i] = targetColor.B; // Blue
+                pixelData[i + 1] = targetColor.G; // Green
+                pixelData[i + 2] = targetColor.R; // Red
+                pixelData[i + 3] = alpha;
+            }
+
+            WriteableBitmap recoloredBitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
+            recoloredBitmap.WritePixels(new Int32Rect(0, 0, width, height), pixelData, stride, 0);
+
+            targetImage.Source = recoloredBitmap;
         }
 
         private void FadeOut()
