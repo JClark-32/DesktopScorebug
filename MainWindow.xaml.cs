@@ -18,22 +18,12 @@ namespace Desktop_Scorebug_WPF
 {
     public partial class MainWindow : Window
     {
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool GetCursorPos(out POINT lpPoint);
-
         [StructLayout(LayoutKind.Sequential)]
         public struct POINT
         {
             public int X;
             public int Y;
         }
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr SetWindowLong(IntPtr hwnd, int nIndex, IntPtr dwNewLong);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetWindowLong(IntPtr hwnd, int nIndex);
 
         private const int GWL_EXSTYLE = -20;
         private const int WS_EX_TRANSPARENT = 0x20;
@@ -42,6 +32,17 @@ namespace Desktop_Scorebug_WPF
         private CancellationTokenSource _cts = new();
         private bool isFadingOut = false;
         private bool isFadingIn = false;
+
+        // P/Invoke declarations
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetCursorPos(out POINT lpPoint);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr SetWindowLong(IntPtr hwnd, int nIndex, IntPtr dwNewLong);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetWindowLong(IntPtr hwnd, int nIndex);
 
         public MainWindow()
         {
@@ -54,19 +55,6 @@ namespace Desktop_Scorebug_WPF
             CenterTopOnScreen();
             MakeWindowClickThrough();
             TrackMouseAsync(_cts.Token);
-            
-            
-        }
-
-        private void BGColorLoaded(object sender, RoutedEventArgs e)
-        {
-            var TeamColor1 = System.Drawing.Color.FromArgb(0, 44, 95);
-            RecolorImageWithAlpha(BackGroundTeamColors, TeamColor1);
-        }
-        private void ScoreBarLoaded(object sender, RoutedEventArgs e)
-        {
-            var TeamColor1 = System.Drawing.Color.FromArgb(0, 37, 81);
-            RecolorImageWithAlpha(BackGroundTeamScoreBar1, TeamColor1);
         }
 
         private void CenterTopOnScreen()
@@ -112,6 +100,41 @@ namespace Desktop_Scorebug_WPF
             }
         }
 
+        private void FadeOut()
+        {
+            if (isFadingOut) return;
+            isFadingOut = true;
+            isFadingIn = false;
+
+            var animation = new DoubleAnimation
+            {
+                To = 0.1,
+                Duration = TimeSpan.FromMilliseconds(300)
+            };
+            this.BeginAnimation(Window.OpacityProperty, animation);
+        }
+
+        private void FadeIn()
+        {
+            if (isFadingIn) return;
+            isFadingIn = true;
+            isFadingOut = false;
+
+            var animation = new DoubleAnimation
+            {
+                To = 1.0,
+                Duration = TimeSpan.FromMilliseconds(300)
+            };
+            this.BeginAnimation(Window.OpacityProperty, animation);
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            _cts.Cancel();
+            base.OnClosed(e);
+        }
+
+        //Start color changing group 
         private void RecolorImageWithAlpha(Image targetImage, System.Drawing.Color targetColor)
         {
             if (targetImage.Source is not BitmapSource sourceBitmap)
@@ -147,38 +170,17 @@ namespace Desktop_Scorebug_WPF
             targetImage.Source = recoloredBitmap;
         }
 
-        private void FadeOut()
+        private void BGColorLoaded(object sender, RoutedEventArgs e)
         {
-            if (isFadingOut) return;
-            isFadingOut = true;
-            isFadingIn = false;
-
-            var animation = new DoubleAnimation
-            {
-                To = 0.1,
-                Duration = TimeSpan.FromMilliseconds(300)
-            };
-            this.BeginAnimation(Window.OpacityProperty, animation);
+            var TeamColor1 = System.Drawing.Color.FromArgb(0, 44, 95);
+            RecolorImageWithAlpha(BackGroundTeamColors, TeamColor1);
+        }
+        private void ScoreBarLoaded(object sender, RoutedEventArgs e)
+        {
+            var TeamColor1 = System.Drawing.Color.FromArgb(0, 37, 81);
+            RecolorImageWithAlpha(BackGroundTeamScoreBar1, TeamColor1);
         }
 
-        private void FadeIn()
-        {
-            if (isFadingIn) return;
-            isFadingIn = true;
-            isFadingOut = false;
-
-            var animation = new DoubleAnimation
-            {
-                To = 1.0,
-                Duration = TimeSpan.FromMilliseconds(300)
-            };
-            this.BeginAnimation(Window.OpacityProperty, animation);
-        }
-
-        protected override void OnClosed(EventArgs e)
-        {
-            _cts.Cancel();
-            base.OnClosed(e);
-        }
+        //end color change group
     }
 }
