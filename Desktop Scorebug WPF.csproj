@@ -12,6 +12,8 @@
   <ItemGroup>
     <None Remove="Images\Custom Ticker\Ticker-TeamBackground 1.png" />
     <None Remove="Images\Custom Ticker\Ticker-TeamBackground.png" />
+    <None Remove="Images\Custom Ticker\Ticker-TeamLogoL-1.png" />
+    <None Remove="Images\Custom Ticker\Ticker-TeamLogoL.png" />
     <None Remove="Images\Custom Ticker\Ticker-TeamScoreBar 1.png" />
     <None Remove="Images\Custom Ticker\TickerCustom-Background.png" />
   </ItemGroup>
@@ -19,6 +21,8 @@
   <ItemGroup>
     <Resource Include="Images\Custom Ticker\Ticker-TeamBackground 1.png" />
     <Resource Include="Images\Custom Ticker\Ticker-TeamBackground.png" />
+    <Resource Include="Images\Custom Ticker\Ticker-TeamLogoL-1.png" />
+    <Resource Include="Images\Custom Ticker\Ticker-TeamLogoL.png" />
     <Resource Include="Images\Custom Ticker\Ticker-TeamScoreBar 1.png" />
     <Resource Include="Images\Custom Ticker\TickerCustom-Background.png" />
   </ItemGroup>

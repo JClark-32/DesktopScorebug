@@ -1,18 +1,12 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media.Animation;
-using System.Drawing;
 using System.Windows.Media.Imaging;
 using System.Windows.Controls;
-using System.Windows.Media.Imaging;
 using System.Windows.Media;
-using System.Windows;
-using System;
-
+using System.Drawing;
 
 namespace Desktop_Scorebug_WPF
 {
@@ -44,6 +38,29 @@ namespace Desktop_Scorebug_WPF
         [DllImport("user32.dll")]
         private static extern IntPtr GetWindowLong(IntPtr hwnd, int nIndex);
 
+        [DllImport("user32.dll")]
+        static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct RECT
+        {
+            public int Left, Top, Right, Bottom;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        struct MONITORINFO
+        {
+            public int cbSize;
+            public RECT rcMonitor;
+            public RECT rcWork;
+            public uint dwFlags;
+        }
+
+        const uint MONITOR_DEFAULTTONEAREST = 2;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -56,6 +73,19 @@ namespace Desktop_Scorebug_WPF
             MakeWindowClickThrough();
             TrackMouseAsync(_cts.Token);
         }
+
+        private RECT GetCurrentMonitorWorkArea()
+        {
+            var hwnd = new WindowInteropHelper(this).Handle;
+            IntPtr hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+
+            MONITORINFO monitorInfo = new MONITORINFO();
+            monitorInfo.cbSize = Marshal.SizeOf(typeof(MONITORINFO));
+            GetMonitorInfo(hMonitor, ref monitorInfo);
+
+            return monitorInfo.rcWork;  // This RECT represents the monitor's working area
+        }
+
 
         private void CenterTopOnScreen()
         {
@@ -80,14 +110,15 @@ namespace Desktop_Scorebug_WPF
 
         private async void TrackMouseAsync(CancellationToken token)
         {
-            var screenHeight = SystemParameters.VirtualScreenHeight;
-            var screenWidth = SystemParameters.VirtualScreenWidth;
+            RECT workArea = GetCurrentMonitorWorkArea();
 
             while (!token.IsCancellationRequested)
             {
-                var position = GetMouseScreenPosition();
+                var pos = GetMouseScreenPosition();
 
-                if (position.Y < screenHeight / 8 && position.X < screenWidth)
+                // Check if mouse Y is in top 1/8th of the monitor's work area
+                if (pos.Y >= workArea.Top && pos.Y < workArea.Top + (workArea.Bottom - workArea.Top) / 8
+                    && pos.X >= workArea.Left && pos.X < workArea.Right)
                 {
                     Dispatcher.Invoke(() => FadeOut());
                 }
@@ -99,6 +130,7 @@ namespace Desktop_Scorebug_WPF
                 await Task.Delay(50);
             }
         }
+
 
         private void FadeOut()
         {
@@ -170,6 +202,97 @@ namespace Desktop_Scorebug_WPF
             targetImage.Source = recoloredBitmap;
         }
 
+        private void FillImageWithImageMask(Image targetImage, Image fillImage)
+        {
+            if (targetImage.Source is not BitmapSource shapeBitmap)
+                throw new InvalidOperationException("The target Image does not contain a valid BitmapSource.");
+            if (fillImage.Source is not BitmapSource fillBitmap)
+                throw new InvalidOperationException("The fill Image does not contain a valid BitmapSource.");
+
+            int shapeWidth = shapeBitmap.PixelWidth;
+            int shapeHeight = shapeBitmap.PixelHeight;
+            int stride = shapeWidth * 4;
+
+            // Convert shape to BGRA32
+            var shapeFormatted = new FormatConvertedBitmap(shapeBitmap, PixelFormats.Bgra32, null, 0);
+            byte[] shapePixels = new byte[shapeHeight * stride];
+            shapeFormatted.CopyPixels(shapePixels, stride, 0);
+
+            // Find bounding box of visible (non-transparent) pixels
+            int minX = shapeWidth, minY = shapeHeight, maxX = 0, maxY = 0;
+            for (int y = 0; y < shapeHeight; y++)
+            {
+                for (int x = 0; x < shapeWidth; x++)
+                {
+                    int i = (y * shapeWidth + x) * 4;
+                    byte alpha = shapePixels[i + 3];
+                    if (alpha > 0)
+                    {
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
+                    }
+                }
+            }
+
+            if (minX >= maxX || minY >= maxY)
+                return;
+
+            int boxWidth = maxX - minX + 1;
+            int boxHeight = maxY - minY + 1;
+
+            // Scale fill image proportionally to fit inside bounding box
+            double scaleX = (double)boxWidth / fillBitmap.PixelWidth;
+            double scaleY = (double)boxHeight / fillBitmap.PixelHeight;
+            double scale = Math.Min(scaleX, scaleY);
+
+            int scaledWidth = (int)(fillBitmap.PixelWidth * scale);
+            int scaledHeight = (int)(fillBitmap.PixelHeight * scale);
+
+            int offsetX = minX + (boxWidth - scaledWidth) / 2;
+            int offsetY = minY + (boxHeight - scaledHeight) / 2;
+
+            // Scale the fill image
+            var scaledFill = new TransformedBitmap(fillBitmap, new ScaleTransform(scale, scale));
+            var fillFormatted = new FormatConvertedBitmap(scaledFill, PixelFormats.Bgra32, null, 0);
+
+            byte[] fillPixels = new byte[scaledHeight * scaledWidth * 4];
+            int fillStride = scaledWidth * 4;
+            fillFormatted.CopyPixels(fillPixels, fillStride, 0);
+
+            // Prepare transparent output buffer
+            byte[] finalPixels = new byte[shapeHeight * stride];
+
+            // Paste the fill image into the center of the shape bounds
+            for (int y = 0; y < scaledHeight; y++)
+            {
+                for (int x = 0; x < scaledWidth; x++)
+                {
+                    int destX = offsetX + x;
+                    int destY = offsetY + y;
+
+                    if (destX < 0 || destX >= shapeWidth || destY < 0 || destY >= shapeHeight)
+                        continue;
+
+                    int srcIndex = (y * scaledWidth + x) * 4;
+                    int dstIndex = (destY * shapeWidth + destX) * 4;
+
+                    // Copy fill image pixels, including original alpha
+                    finalPixels[dstIndex + 0] = fillPixels[srcIndex + 0]; // B
+                    finalPixels[dstIndex + 1] = fillPixels[srcIndex + 1]; // G
+                    finalPixels[dstIndex + 2] = fillPixels[srcIndex + 2]; // R
+                    finalPixels[dstIndex + 3] = fillPixels[srcIndex + 3]; // A (preserved!)
+                }
+            }
+
+            WriteableBitmap result = new WriteableBitmap(shapeWidth, shapeHeight, 96, 96, PixelFormats.Bgra32, null);
+            result.WritePixels(new Int32Rect(0, 0, shapeWidth, shapeHeight), finalPixels, stride, 0);
+
+            targetImage.Source = result;
+        }
+
+
         private void BGColorLoaded(object sender, RoutedEventArgs e)
         {
             var TeamColor1 = System.Drawing.Color.FromArgb(0, 44, 95);
@@ -179,6 +302,19 @@ namespace Desktop_Scorebug_WPF
         {
             var TeamColor1 = System.Drawing.Color.FromArgb(0, 37, 81);
             RecolorImageWithAlpha(BackGroundTeamScoreBar1, TeamColor1);
+        }
+
+        private void TeamLogoLoaded(object sender, RoutedEventArgs e)
+        {
+            string ImagePath = "C:\\Users\\Jacob\\Desktop\\Desktop Scorebug WPF\\Desktop Scorebug WPF\\Images\\NFL Logos\\indianapolis-colts-logo-transparent.png";
+            BitmapImage fillBitmap = new BitmapImage();
+
+            fillBitmap.BeginInit();
+            fillBitmap.UriSource = new Uri(ImagePath, UriKind.Absolute);
+            fillBitmap.CacheOption = BitmapCacheOption.OnLoad; // Allows closing the file after loading
+            fillBitmap.EndInit();
+
+            FillImageWithImageMask(TeamLogo1, new Image { Source = fillBitmap });
         }
 
         //end color change group

@@ -20,5 +20,7 @@
                Source="/Images/Custom Ticker/Ticker-TeamBackground 1.png" RenderTransformOrigin="0,0" Loaded="BGColorLoaded"/>
         <Image Name="BackGroundTeamScoreBar1" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
                Source="/Images/Custom Ticker/Ticker-TeamScoreBar 1.png" RenderTransformOrigin="0,0" Loaded="ScoreBarLoaded"/>
+        <Image Name="TeamLogo1" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-TeamLogoL-1.png" RenderTransformOrigin="0,0" Loaded="TeamLogoLoaded"/>
     </Grid>
 </Window>
