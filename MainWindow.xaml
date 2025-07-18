@@ -16,11 +16,15 @@
     <Grid x:Name="RootGrid">
         <Image Name="BackgroundBase" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100" 
                Source="/Images/Custom Ticker/TickerCustom-Background.png" RenderTransformOrigin="0,0"/>
-        <Image Name="BackGroundTeamColors" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TeamBackground 1.png" RenderTransformOrigin="0,0" Loaded="BGColorLoaded"/>
+        <Image Name="BackGroundTeamColor1" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-TeamBackground 1.png" RenderTransformOrigin="0,0" Loaded="BGColorLoadedL"/>
+        <Image Name="BackGroundTeamColor2" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-TeamBackground 2.png" RenderTransformOrigin="0,0" Loaded="BGColorLoadedR"/>
         <Image Name="BackGroundTeamScoreBar1" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
                Source="/Images/Custom Ticker/Ticker-ScoreBarShadow.png" RenderTransformOrigin="0,0"/>
         <Image Name="TeamLogo1" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TeamLogoL-1.png" RenderTransformOrigin="0,0" Loaded="TeamLogoLoaded"/>
+               Source="/Images/Custom Ticker/Ticker-TeamLogoL-1.png" RenderTransformOrigin="0,0" Loaded="TeamLogoLoadedL"/>
+        <Image Name="TeamLogo2" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-TeamLogoR.png" RenderTransformOrigin="0,0" Loaded="TeamLogoLoadedR"/>
     </Grid>
 </Window>

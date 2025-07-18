@@ -15,6 +15,9 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using Newtonsoft.Json.Linq;
 using String = System.String;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
+using System.Text.Json;
+using System.Dynamic;
 
 namespace Desktop_Scorebug_WPF
 {
@@ -69,8 +72,7 @@ namespace Desktop_Scorebug_WPF
 
         const uint MONITOR_DEFAULTTONEAREST = 2;
 
-        private String team1LogoUrl = "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png";
-        private String team1Color = "#e31837";
+        string gameName = "Dallas Cowboys at Philadelphia Eagles";
 
         public MainWindow()
         {
@@ -83,7 +85,6 @@ namespace Desktop_Scorebug_WPF
             CenterTopOnScreen();
             MakeWindowClickThrough();
             TrackMouseAsync(_cts.Token);
-            getJson();
         }
 
         private RECT GetCurrentMonitorWorkArea()
@@ -178,7 +179,50 @@ namespace Desktop_Scorebug_WPF
             base.OnClosed(e);
         }
 
-        private async void getJson()
+        public class TeamInfo
+        {
+            public string TeamName { get; set; }
+            public string Color { get; set; }
+            public string Logo { get; set; }
+        }
+
+        public List<TeamInfo> GetTeamsByMatchupName(JArray eventsArray, string matchupName)
+        {
+            var teams = new List<TeamInfo>();
+
+            foreach (JObject eventObj in eventsArray)
+            {
+                string name = eventObj["name"]?.ToString();
+                if (name != matchupName)
+                    continue;
+
+                var competitors = eventObj["competitions"]?[0]?["competitors"] as JArray;
+                if (competitors == null) continue;
+
+                foreach (var competitor in competitors)
+                {
+                    var team = competitor["team"];
+                    if (team == null) continue;
+
+                    string teamName = team["displayName"]?.ToString();
+                    string color = team["color"]?.ToString();
+                    string logo = team["logo"]?.ToString();
+
+                    teams.Add(new TeamInfo
+                    {
+                        TeamName = teamName,
+                        Color = color,
+                        Logo = logo
+                    });
+                }
+
+                break; // we found the matchup, no need to continue
+            }
+
+            return teams;
+        }
+
+        private static async Task<JObject> getJsonfromEndpoint()
         {
             string url = "https://cdn.espn.com/core/nfl/scoreboard?xhr=1&limit=50";
             using HttpClient client = new HttpClient();
@@ -186,33 +230,81 @@ namespace Desktop_Scorebug_WPF
             {
                 string json = await client.GetStringAsync(url);
                 JObject joResponse = JObject.Parse(json);
-                JObject ojObject = (JObject)joResponse["content"];
-                JObject ojObject1 = (JObject)ojObject["sbData"];
-
-                JArray array = (JArray)ojObject1["events"];
-                //JArray array1 = (JArray)array["competitions"];
-                //Debug.WriteLine(array1.ToString());
-
-                var nameValues = array.SelectTokens("$..name");
-                foreach (JObject eventObj in array)
-                {
-                    // This grabs the "name" property if it exists directly in the event object
-                    JToken nameToken = eventObj["name"];
-                    if (nameToken != null)
-                    {
-                        Debug.WriteLine(nameToken.ToString());
-                    }
-                }
-
-                //Debug.WriteLine(array.ToString());
+                return joResponse;
             }
-            catch
+            catch (Exception ex)
             {
-                Console.WriteLine($"Request error");
+                Console.WriteLine($"Request error: {ex.Message}");
             }
+            return null;
+        }
 
+        private async Task<JArray> getEvents()
+        {
+            JObject json = await getJsonfromEndpoint();
+            JObject ojObject = (JObject)json["content"];
+            JObject ojObject1 = (JObject)ojObject["sbData"];
+            JArray array = (JArray)ojObject1["events"];
+            return array;
+        }
 
-            
+        private async Task<string?> getTeamColor(String Matchup, int Team, JArray eventsArray)
+        {
+            string color = "";
+
+            foreach (JObject eventObj in eventsArray)
+            {
+                string name = eventObj["name"]?.ToString();
+                if (name != Matchup)
+                    continue;
+
+                var competitors = eventObj["competitions"]?[0]?["competitors"] as JArray;
+                if (competitors == null) continue;
+
+                var team = competitors[Team]["team"];
+                if (team == null) continue;
+
+                color = "#" + team["color"]?.ToString();
+                
+                
+            break;
+            }
+            return color;
+        }
+
+        private async Task<BitmapImage> getTeamLogo(String Matchup, int Team, JArray eventsArray)
+        {
+            string logoUrl = "";
+            foreach (JObject eventObj in eventsArray)
+            {
+                string name = eventObj["name"]?.ToString();
+                if (name != Matchup)
+                    continue;
+
+                var competitors = eventObj["competitions"]?[0]?["competitors"] as JArray;
+                if (competitors == null) continue;
+
+                var team = competitors[Team]["team"];
+                if (team == null) continue;
+
+                logoUrl = team["logo"]?.ToString();
+                
+                break;
+            }
+            using HttpClient httpClient = new();
+            byte[] imageBytes = await httpClient.GetByteArrayAsync(logoUrl);
+
+            BitmapImage fillBitmap = new BitmapImage();
+
+            using (var stream = new MemoryStream(imageBytes))
+            {
+                fillBitmap.BeginInit();
+                fillBitmap.CacheOption = BitmapCacheOption.OnLoad;
+                fillBitmap.StreamSource = stream;
+                fillBitmap.EndInit();
+                fillBitmap.Freeze(); // Optional but useful for threading
+            }
+            return fillBitmap;
         }
 
         //Start color changing group 
@@ -342,30 +434,30 @@ namespace Desktop_Scorebug_WPF
         }
 
 
-        private void BGColorLoaded(object sender, RoutedEventArgs e)
+        private async void BGColorLoadedL(object sender, RoutedEventArgs e)
         {
-            var TeamColor1 = System.Drawing.ColorTranslator.FromHtml(team1Color);
-            RecolorImageWithAlpha(BackGroundTeamColors, TeamColor1);
+            JArray Events = await getEvents();
+            var TeamColor1 = System.Drawing.ColorTranslator.FromHtml(await getTeamColor(gameName, 0, Events));
+            RecolorImageWithAlpha(BackGroundTeamColor1, TeamColor1);
         }
-        
-
-        private async void TeamLogoLoaded(object sender, RoutedEventArgs e)
+        private async void BGColorLoadedR(object sender, RoutedEventArgs e)
         {
-            using HttpClient httpClient = new();
-            byte[] imageBytes = await httpClient.GetByteArrayAsync(team1LogoUrl);
-
-            BitmapImage fillBitmap = new BitmapImage();
-
-            using (var stream = new MemoryStream(imageBytes))
-            {
-                fillBitmap.BeginInit();
-                fillBitmap.CacheOption = BitmapCacheOption.OnLoad;
-                fillBitmap.StreamSource = stream;
-                fillBitmap.EndInit();
-                fillBitmap.Freeze(); // Optional but useful for threading
-            }
-
+            JArray Events = await getEvents();
+            var TeamColor1 = System.Drawing.ColorTranslator.FromHtml(await getTeamColor(gameName, 1, Events));
+            RecolorImageWithAlpha(BackGroundTeamColor2, TeamColor1);
+        }
+        private async void TeamLogoLoadedL(object sender, RoutedEventArgs e)
+        {
+            JArray Events = await getEvents();
+            BitmapImage fillBitmap = await getTeamLogo(gameName, 0, Events);
             FillImageWithImageMask(TeamLogo1, new Image { Source = fillBitmap });
+        }
+        private async void TeamLogoLoadedR(object sender, RoutedEventArgs e)
+        {
+            JArray Events = await getEvents();
+            BitmapImage fillBitmap = await getTeamLogo(gameName, 1, Events);
+            FillImageWithImageMask(TeamLogo2, new Image { Source = fillBitmap });
+
         }
 
         //end color change group
