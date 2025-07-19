@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Text.Json;
 using System.Dynamic;
+using System.Text;
 
 namespace Desktop_Scorebug_WPF
 {
@@ -72,7 +73,8 @@ namespace Desktop_Scorebug_WPF
 
         const uint MONITOR_DEFAULTTONEAREST = 2;
 
-        string gameName = "Dallas Cowboys at Philadelphia Eagles";
+        string urlDate = "20250807";
+        string gameName = "Indianapolis Colts at Baltimore Ravens";
 
         public MainWindow()
         {
@@ -222,9 +224,9 @@ namespace Desktop_Scorebug_WPF
             return teams;
         }
 
-        private static async Task<JObject> getJsonfromEndpoint()
+        private static async Task<JObject> getJsonfromEndpoint(String urlDate)
         {
-            string url = "https://cdn.espn.com/core/nfl/scoreboard?xhr=1&limit=50";
+            string url = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=" + urlDate;
             using HttpClient client = new HttpClient();
             try
             {
@@ -239,12 +241,12 @@ namespace Desktop_Scorebug_WPF
             return null;
         }
 
-        private async Task<JArray> getEvents()
+        private async Task<JArray> getEvents(String urlDate)
         {
-            JObject json = await getJsonfromEndpoint();
-            JObject ojObject = (JObject)json["content"];
-            JObject ojObject1 = (JObject)ojObject["sbData"];
-            JArray array = (JArray)ojObject1["events"];
+            JObject json = await getJsonfromEndpoint(urlDate);
+            //JObject ojObject = (JObject)json["content"];
+            //JObject ojObject1 = (JObject)ojObject["sbData"];
+            JArray array = (JArray)json["events"];
             return array;
         }
 
@@ -436,25 +438,25 @@ namespace Desktop_Scorebug_WPF
 
         private async void BGColorLoadedL(object sender, RoutedEventArgs e)
         {
-            JArray Events = await getEvents();
+            JArray Events = await getEvents(urlDate);
             var TeamColor1 = System.Drawing.ColorTranslator.FromHtml(await getTeamColor(gameName, 0, Events));
             RecolorImageWithAlpha(BackGroundTeamColor1, TeamColor1);
         }
         private async void BGColorLoadedR(object sender, RoutedEventArgs e)
         {
-            JArray Events = await getEvents();
+            JArray Events = await getEvents(urlDate);
             var TeamColor1 = System.Drawing.ColorTranslator.FromHtml(await getTeamColor(gameName, 1, Events));
             RecolorImageWithAlpha(BackGroundTeamColor2, TeamColor1);
         }
         private async void TeamLogoLoadedL(object sender, RoutedEventArgs e)
         {
-            JArray Events = await getEvents();
+            JArray Events = await getEvents(urlDate);
             BitmapImage fillBitmap = await getTeamLogo(gameName, 0, Events);
             FillImageWithImageMask(TeamLogo1, new Image { Source = fillBitmap });
         }
         private async void TeamLogoLoadedR(object sender, RoutedEventArgs e)
         {
-            JArray Events = await getEvents();
+            JArray Events = await getEvents(urlDate);
             BitmapImage fillBitmap = await getTeamLogo(gameName, 1, Events);
             FillImageWithImageMask(TeamLogo2, new Image { Source = fillBitmap });
 
