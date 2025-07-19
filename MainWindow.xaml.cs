@@ -76,9 +76,9 @@ namespace Desktop_Scorebug_WPF
         string todayURLFormatted = DateTime.Today.ToString("yyyyMMdd");
         string yesterdayURLFormatted = DateTime.Today.AddDays(-1).ToString("yyyyMMdd");
 
-        string urlDate = "20250830";
-        string gameName = "Ball State Cardinals at Purdue Boilermakers";
-        string league = "college-football";
+        string urlDate = "20250807";
+        string gameName = "Indianapolis Colts at Baltimore Ravens";
+        string league = "nfl";
 
             
 
@@ -426,6 +426,7 @@ namespace Desktop_Scorebug_WPF
                 BorderBrush = Brushes.Black,
                 BorderThickness = new Thickness(0),
                 Foreground = Brushes.White,
+                FontFamily = new FontFamily(new Uri("pack://application:,,,/"), "./Font/#Bebas Neue"),
                 Text = "-"
             };
 
@@ -591,6 +592,19 @@ namespace Desktop_Scorebug_WPF
             targetImage.Source = result;
         }
 
+        public void AddTextOutline(TextBox textBox, System.Windows.Media.Color outlineColor, double thickness = 1.5)
+        {
+            textBox.Effect = new System.Windows.Media.Effects.DropShadowEffect
+            {
+                Color = outlineColor,
+                Direction = 0,
+                ShadowDepth = 0,
+                Opacity = 1,
+                BlurRadius = thickness
+            };
+        }
+
+
 
         private async void BGColorLoadedL(object sender, RoutedEventArgs e)
         {
@@ -628,6 +642,24 @@ namespace Desktop_Scorebug_WPF
 
             if (found != null)
                 found.Text = Team1Abr;
+
+            AddTextOutline(found, Colors.Black, 10.0);
+
+        }
+        private async void TeamNameLoadedR(object sender, RoutedEventArgs e)
+        {
+            JArray Events = await getEvents(urlDate, league);
+            var Team1Abr = await getAbbreviation(gameName, 1, Events);
+            ReplaceSquareInImageWithTextBox(TeamName2, "TeamName2ABR");
+
+            TextBox found = (TextBox)RootGrid.Children
+                .OfType<TextBox>()
+                .FirstOrDefault(tb => tb.Name == "TeamName2ABR");
+
+            if (found != null)
+                found.Text = Team1Abr;
+
+            AddTextOutline(found, Colors.Black, 10.0);
 
         }
         //end color change group

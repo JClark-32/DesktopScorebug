@@ -10,6 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Font\BebasNeue-Regular.ttf" />
+    <None Remove="Font\Crony.ttf" />
     <None Remove="Images\Custom Ticker\Ticker-Clock.png" />
     <None Remove="Images\Custom Ticker\Ticker-ScoreBarShadow.png" />
     <None Remove="Images\Custom Ticker\Ticker-TeamBackground 1.png" />
@@ -19,8 +21,15 @@
     <None Remove="Images\Custom Ticker\Ticker-TeamLogoL.png" />
     <None Remove="Images\Custom Ticker\Ticker-TeamLogoR.png" />
     <None Remove="Images\Custom Ticker\Ticker-TeamName L.png" />
+    <None Remove="Images\Custom Ticker\Ticker-TeamName R.png" />
     <None Remove="Images\Custom Ticker\Ticker-TeamScoreBar 1.png" />
     <None Remove="Images\Custom Ticker\TickerCustom-Background.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Font\BebasNeue-Regular.ttf" />
+    <Resource Include="Font\Crony.ttf" />
+    <Resource Include="Images\Custom Ticker\Ticker-TeamName R.png" />
   </ItemGroup>
 
   <ItemGroup>
