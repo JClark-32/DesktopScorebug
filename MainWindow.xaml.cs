@@ -73,8 +73,14 @@ namespace Desktop_Scorebug_WPF
 
         const uint MONITOR_DEFAULTTONEAREST = 2;
 
-        string urlDate = "20250807";
-        string gameName = "Indianapolis Colts at Baltimore Ravens";
+        string todayURLFormatted = DateTime.Today.ToString("yyyyMMdd");
+        string yesterdayURLFormatted = DateTime.Today.AddDays(-1).ToString("yyyyMMdd");
+
+        string urlDate = "20250830";
+        string gameName = "Ball State Cardinals at Purdue Boilermakers";
+        string league = "college-football";
+
+            
 
         public MainWindow()
         {
@@ -87,6 +93,7 @@ namespace Desktop_Scorebug_WPF
             CenterTopOnScreen();
             MakeWindowClickThrough();
             TrackMouseAsync(_cts.Token);
+            Debug.WriteLine(DateTime.Now.ToString("H,m"));
         }
 
         private RECT GetCurrentMonitorWorkArea()
@@ -224,9 +231,9 @@ namespace Desktop_Scorebug_WPF
             return teams;
         }
 
-        private static async Task<JObject> getJsonfromEndpoint(String urlDate)
+        private static async Task<JObject> getJsonfromEndpoint(String urlDate, String league)
         {
-            string url = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=" + urlDate;
+            string url = "https://site.api.espn.com/apis/site/v2/sports/football/"+league+"/scoreboard?dates=" + urlDate;
             using HttpClient client = new HttpClient();
             try
             {
@@ -241,9 +248,9 @@ namespace Desktop_Scorebug_WPF
             return null;
         }
 
-        private async Task<JArray> getEvents(String urlDate)
+        private async Task<JArray> getEvents(String urlDate, String league)
         {
-            JObject json = await getJsonfromEndpoint(urlDate);
+            JObject json = await getJsonfromEndpoint(urlDate, league);
             //JObject ojObject = (JObject)json["content"];
             //JObject ojObject1 = (JObject)ojObject["sbData"];
             JArray array = (JArray)json["events"];
@@ -266,12 +273,44 @@ namespace Desktop_Scorebug_WPF
                 var team = competitors[Team]["team"];
                 if (team == null) continue;
 
-                color = "#" + team["color"]?.ToString();
+                if (league.Equals("nfl"))
+                {
+                    color = "#" + team["color"]?.ToString();
+                }
+                else
+                {
+                    color = "#" + team["alternateColor"]?.ToString();
+                }
                 
                 
             break;
             }
             return color;
+        }
+
+        private async Task<string?> getAbbreviation(String Matchup, int Team, JArray eventsArray)
+        {
+            string abbreviation = "";
+
+            foreach (JObject eventObj in eventsArray)
+            {
+                string name = eventObj["name"]?.ToString();
+                if (name != Matchup)
+                    continue;
+
+                var competitors = eventObj["competitions"]?[0]?["competitors"] as JArray;
+                if (competitors == null) continue;
+
+                var team = competitors[Team]["team"];
+                if (team == null) continue;
+
+                
+                abbreviation = team["abbreviation"]?.ToString();
+
+
+                break;
+            }
+            return abbreviation;
         }
 
         private async Task<BitmapImage> getTeamLogo(String Matchup, int Team, JArray eventsArray)
@@ -307,6 +346,123 @@ namespace Desktop_Scorebug_WPF
                 fillBitmap.Freeze(); // Optional but useful for threading
             }
             return fillBitmap;
+        }
+
+        public void ReplaceSquareInImageWithTextBox(Image imageControl, string textBoxName)
+        {
+            if (imageControl.Source == null)
+                throw new InvalidOperationException("Image control has no source.");
+
+            // Convert to BitmapSource (if not already)
+            BitmapSource source = ConvertToBitmapSource(imageControl.Source);
+
+            // Convert to WriteableBitmap
+            WriteableBitmap writable = new WriteableBitmap(source);
+            int width = writable.PixelWidth;
+            int height = writable.PixelHeight;
+
+            int[] pixels = new int[width * height];
+            writable.CopyPixels(pixels, width * 4, 0);
+
+            // Find non-transparent square bounds
+            int minX = width, minY = height, maxX = 0, maxY = 0;
+            bool found = false;
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int pixel = pixels[y * width + x];
+                    byte alpha = (byte)((pixel >> 24) & 0xFF);
+                    if (alpha > 0)
+                    {
+                        found = true;
+                        if (x < minX) minX = x;
+                        if (y < minY) minY = y;
+                        if (x > maxX) maxX = x;
+                        if (y > maxY) maxY = y;
+                    }
+                }
+            }
+
+            if (!found)
+                return;
+
+            // Make detected square transparent
+            for (int y = minY; y <= maxY; y++)
+            {
+                for (int x = minX; x <= maxX; x++)
+                {
+                    pixels[y * width + x] = 0x00000000;
+                }
+            }
+
+            WriteableBitmap updated = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
+            updated.WritePixels(new Int32Rect(0, 0, width, height), pixels, width * 4, 0);
+            imageControl.Source = updated;
+
+            // Scale from image space to control space
+            double scaleX = imageControl.ActualWidth / width;
+            double scaleY = imageControl.ActualHeight / height;
+
+            Rect rect = new Rect(
+                minX * scaleX,
+                minY * scaleY,
+                (maxX - minX + 1) * scaleX,
+                (maxY - minY + 1) * scaleY
+            );
+
+            // Create and position TextBox
+            TextBox textBox = new TextBox
+            {
+                Name = textBoxName,
+                Width = rect.Width,
+                Height = rect.Height,
+                FontSize = rect.Height * 0.9,
+                TextAlignment = TextAlignment.Center,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                Background = Brushes.Transparent,
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(0),
+                Foreground = Brushes.White,
+                Text = "-"
+            };
+
+            // Add to panel and position with Margin
+            if (imageControl.Parent is Panel panel)
+            {
+                panel.Children.Add(textBox);
+
+                // Translate coordinates from image to parent panel
+                System.Windows.Point topLeft = imageControl.TranslatePoint(new System.Windows.Point(rect.X, rect.Y), panel);
+
+                textBox.Margin = new Thickness(topLeft.X, topLeft.Y, 0, 0);
+                textBox.HorizontalAlignment = HorizontalAlignment.Left;
+                textBox.VerticalAlignment = VerticalAlignment.Top;
+            }
+            else
+            {
+                throw new InvalidOperationException("Image's parent must be a Panel (Grid, StackPanel, etc.)");
+            }
+        }
+
+
+
+        // Converts any ImageSource to a BitmapSource
+        private BitmapSource ConvertToBitmapSource(ImageSource source)
+        {
+            if (source is BitmapSource bitmapSource)
+            {
+                return bitmapSource;
+            }
+
+            throw new InvalidOperationException("Unsupported image source type.");
+        }
+
+        private async void ClockLoaded(object sender, RoutedEventArgs e)
+        {
+            ReplaceSquareInImageWithTextBox(TickerClock, "tickerClock");
         }
 
         //Start color changing group 
@@ -438,30 +594,42 @@ namespace Desktop_Scorebug_WPF
 
         private async void BGColorLoadedL(object sender, RoutedEventArgs e)
         {
-            JArray Events = await getEvents(urlDate);
+            JArray Events = await getEvents(urlDate, league);
             var TeamColor1 = System.Drawing.ColorTranslator.FromHtml(await getTeamColor(gameName, 0, Events));
             RecolorImageWithAlpha(BackGroundTeamColor1, TeamColor1);
         }
         private async void BGColorLoadedR(object sender, RoutedEventArgs e)
         {
-            JArray Events = await getEvents(urlDate);
+            JArray Events = await getEvents(urlDate, league);
             var TeamColor1 = System.Drawing.ColorTranslator.FromHtml(await getTeamColor(gameName, 1, Events));
             RecolorImageWithAlpha(BackGroundTeamColor2, TeamColor1);
         }
         private async void TeamLogoLoadedL(object sender, RoutedEventArgs e)
         {
-            JArray Events = await getEvents(urlDate);
+            JArray Events = await getEvents(urlDate, league);
             BitmapImage fillBitmap = await getTeamLogo(gameName, 0, Events);
             FillImageWithImageMask(TeamLogo1, new Image { Source = fillBitmap });
         }
         private async void TeamLogoLoadedR(object sender, RoutedEventArgs e)
         {
-            JArray Events = await getEvents(urlDate);
+            JArray Events = await getEvents(urlDate, league);
             BitmapImage fillBitmap = await getTeamLogo(gameName, 1, Events);
             FillImageWithImageMask(TeamLogo2, new Image { Source = fillBitmap });
+        }
+        private async void TeamNameLoadedL(object sender, RoutedEventArgs e)
+        {
+            JArray Events = await getEvents(urlDate, league);
+            var Team1Abr = await getAbbreviation(gameName, 0, Events);
+            ReplaceSquareInImageWithTextBox(TeamName1, "TeamName1ABR");
+
+            TextBox found = (TextBox)RootGrid.Children
+                .OfType<TextBox>()
+                .FirstOrDefault(tb => tb.Name == "TeamName1ABR");
+
+            if (found != null)
+                found.Text = Team1Abr;
 
         }
-
         //end color change group
     }
 }
