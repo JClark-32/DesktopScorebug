@@ -30,6 +30,10 @@
                Source="/Images/Custom Ticker/Ticker-TeamName L.png" RenderTransformOrigin="0,0" Loaded="TeamNameLoadedL"/>
         <Image Name="TeamName2" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
                Source="/Images/Custom Ticker/Ticker-TeamName R.png" RenderTransformOrigin="0,0" Loaded="TeamNameLoadedR"/>
+        <Image Name="TeamScore1" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-TeamScore L.png" RenderTransformOrigin="0,0" Loaded="TeamScoreLoadedL"/>
+        <Image Name="TeamScore2" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-TeamScore R.png" RenderTransformOrigin="0,0" Loaded="TeamScoreLoadedR"/>
         <Image Name="TickerClock" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
                Source="/Images/Custom Ticker/Ticker-Clock.png" RenderTransformOrigin="0,0" Loaded="ClockLoaded"/>
     </Grid>

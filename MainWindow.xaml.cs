@@ -313,6 +313,32 @@ namespace Desktop_Scorebug_WPF
             return abbreviation;
         }
 
+        private async Task<string?> getScore(String Matchup, int Team, JArray eventsArray)
+        {
+            string score = "";
+
+            foreach (JObject eventObj in eventsArray)
+            {
+                string name = eventObj["name"]?.ToString();
+                if (name != Matchup)
+                    continue;
+
+                var competitors = eventObj["competitions"]?[0]?["competitors"] as JArray;
+                if (competitors == null) continue;
+
+                var team = competitors[Team]["score"];
+                if (team == null) continue;
+
+                Debug.Print(team.ToString());
+
+                score = team.ToString();
+
+
+                break;
+            }
+            return score;
+        }
+
         private async Task<BitmapImage> getTeamLogo(String Matchup, int Team, JArray eventsArray)
         {
             string logoUrl = "";
@@ -658,6 +684,39 @@ namespace Desktop_Scorebug_WPF
 
             if (found != null)
                 found.Text = Team1Abr;
+
+            AddTextOutline(found, Colors.Black, 10.0);
+
+        }
+
+        private async void TeamScoreLoadedL(object sender, RoutedEventArgs e)
+        {
+            JArray Events = await getEvents(urlDate, league);
+            var Team1Score = await getScore(gameName, 0, Events);
+            ReplaceSquareInImageWithTextBox(TeamScore1, "TeamScore1");
+
+            TextBox found = (TextBox)RootGrid.Children
+                .OfType<TextBox>()
+                .FirstOrDefault(tb => tb.Name == "TeamScore1");
+
+            if (found != null)
+                found.Text = Team1Score;
+
+            AddTextOutline(found, Colors.Black, 10.0);
+
+        }
+        private async void TeamScoreLoadedR(object sender, RoutedEventArgs e)
+        {
+            JArray Events = await getEvents(urlDate, league);
+            var Team2Score = await getScore(gameName, 1, Events);
+            ReplaceSquareInImageWithTextBox(TeamScore2, "TeamScore2");
+
+            TextBox found = (TextBox)RootGrid.Children
+                .OfType<TextBox>()
+                .FirstOrDefault(tb => tb.Name == "TeamScore2");
+
+            if (found != null)
+                found.Text = Team2Score;
 
             AddTextOutline(found, Colors.Black, 10.0);
 
