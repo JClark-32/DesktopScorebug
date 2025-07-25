@@ -22,7 +22,7 @@ using System.Text;
 
 namespace Desktop_Scorebug_WPF
 {
-    public partial class MainWindow : Window
+    public partial class Scoreboard : Window
     {
         [StructLayout(LayoutKind.Sequential)]
         public struct POINT
@@ -82,7 +82,7 @@ namespace Desktop_Scorebug_WPF
 
             
 
-        public MainWindow()
+        public Scoreboard()
         {
             InitializeComponent();
             this.Loaded += Window_Loaded; // wire Loaded in code

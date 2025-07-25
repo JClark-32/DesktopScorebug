@@ -1,4 +1,4 @@
-﻿<Window x:Class="Desktop_Scorebug_WPF.MainWindow"
+﻿<Window x:Class="Desktop_Scorebug_WPF.Scoreboard"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -12,7 +12,7 @@
         Top="0" Left="0"
         Background="Transparent"
         Loaded="Window_Loaded"
-        Title="MainWindow" Height="112" Width="1100" VerticalAlignment="Top">
+        Title="Scoreboard" Height="112" Width="1100" VerticalAlignment="Top">
     <Grid x:Name="RootGrid">
         <Image Name="BackgroundBase" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100" 
                Source="/Images/Custom Ticker/TickerCustom-Background.png" RenderTransformOrigin="0,0"/>
