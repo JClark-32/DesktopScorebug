@@ -339,6 +339,35 @@ namespace Desktop_Scorebug_WPF
             return score;
         }
 
+        private async Task<string?> getClock(String Matchup, JArray eventsArray)
+        {
+            string clock = "";
+
+            foreach (JObject eventObj in eventsArray)
+            {
+                string name = eventObj["name"]?.ToString();
+                if (name != Matchup)
+                    continue;
+
+                var competitors = eventObj["competitions"] as JArray;
+                var competition = competitors[0] as JObject;
+                var status = competition["status"] as JObject;
+
+                Debug.Print(status.ToString());
+
+                if (competitors == null) continue;
+
+                var displayClock = status["displayClock"];
+                if (displayClock == null) continue;
+
+                clock = displayClock.ToString();
+                clock = "15:00";
+
+                break;
+            }
+            return clock;
+        }
+
         private async Task<BitmapImage> getTeamLogo(String Matchup, int Team, JArray eventsArray)
         {
             string logoUrl = "";
@@ -489,7 +518,23 @@ namespace Desktop_Scorebug_WPF
 
         private async void ClockLoaded(object sender, RoutedEventArgs e)
         {
+
+            JArray Events = await getEvents(urlDate, league);
+            var gameClock = await getClock(gameName, Events);
+
             ReplaceSquareInImageWithTextBox(TickerClock, "tickerClock");
+
+
+            TextBox found = (TextBox)RootGrid.Children
+                .OfType<TextBox>()
+                .FirstOrDefault(tb => tb.Name == "tickerClock");
+
+            if (found != null)
+                found.Text = gameClock;
+
+            AddTextOutline(found, Colors.Black, 10.0);
+
+
         }
 
         //Start color changing group 
