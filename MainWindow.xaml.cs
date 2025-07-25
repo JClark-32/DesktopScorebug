@@ -76,9 +76,9 @@ namespace Desktop_Scorebug_WPF
         string todayURLFormatted = DateTime.Today.ToString("yyyyMMdd");
         string yesterdayURLFormatted = DateTime.Today.AddDays(-1).ToString("yyyyMMdd");
 
-        string urlDate = "20250807";
-        string gameName = "Indianapolis Colts at Baltimore Ravens";
-        string league = "nfl";
+        string urlDate = "20250830";
+        string gameName = "Old Dominion Monarchs at Indiana Hoosiers";
+        string league = "college-football";
 
             
 
@@ -350,6 +350,42 @@ namespace Desktop_Scorebug_WPF
                     continue;
 
                 var competitors = eventObj["competitions"] as JArray;
+                if (competitors == null) continue;
+
+                var competition = competitors[0] as JObject;
+                var status = competition["status"] as JObject;
+                var type = status["type"] as JObject;
+                var finished = type["completed"].ToObject<bool>();
+                
+                if (finished == true)
+                {
+                    clock = "FINAL";
+                    break;
+                }
+
+                Debug.Print(status.ToString());
+
+                var displayClock = status["displayClock"];
+                if (displayClock == null) continue;
+
+                clock = displayClock.ToString();
+
+                break;
+            }
+            return clock;
+        }
+
+        private async Task<string?> getPeriod(String Matchup, JArray eventsArray)
+        {
+            string period = "";
+
+            foreach (JObject eventObj in eventsArray)
+            {
+                string name = eventObj["name"]?.ToString();
+                if (name != Matchup)
+                    continue;
+
+                var competitors = eventObj["competitions"] as JArray;
                 var competition = competitors[0] as JObject;
                 var status = competition["status"] as JObject;
 
@@ -357,15 +393,51 @@ namespace Desktop_Scorebug_WPF
 
                 if (competitors == null) continue;
 
-                var displayClock = status["displayClock"];
-                if (displayClock == null) continue;
+                var periodJSON = status["period"];
+                if (periodJSON == null) continue;
+                int periodNUM = periodJSON.ToObject<int>();
 
-                clock = displayClock.ToString();
-                clock = "15:00";
-
+                switch (periodNUM)
+                {
+                    case 0:
+                        break;
+                    case <= 4:
+                        period = periodNUM + getEndNumberModifier(periodNUM);
+                        break;
+                    case 5:
+                        period = "OT";
+                        break;
+                    default:
+                        periodNUM = periodNUM - 4;
+                        period = (periodNUM) + getEndNumberModifier(periodNUM) + " OT";
+                        break;
+                }
+                
                 break;
             }
-            return clock;
+            return period;
+        }
+
+        private string getEndNumberModifier(int number)
+        {
+            number = number % 10;
+            String modifier = "";
+            switch (number)
+            {
+                case 1:
+                    modifier = "st";
+                    break;
+                case 2:
+                    modifier = "nd";
+                    break;
+                case 3:
+                    modifier = "rd";
+                    break;
+                default:
+                    modifier = "th";
+                    break;
+            }
+            return modifier;
         }
 
         private async Task<BitmapImage> getTeamLogo(String Matchup, int Team, JArray eventsArray)
@@ -531,6 +603,26 @@ namespace Desktop_Scorebug_WPF
 
             if (found != null)
                 found.Text = gameClock;
+
+            AddTextOutline(found, Colors.Black, 10.0);
+
+
+        }
+        private async void QuarterLoaded(object sender, RoutedEventArgs e)
+        {
+
+            JArray Events = await getEvents(urlDate, league);
+            var gameQuarter = await getPeriod(gameName, Events);
+
+            ReplaceSquareInImageWithTextBox(TickerQuarter, "tickerQuarter");
+
+
+            TextBox found = (TextBox)RootGrid.Children
+                .OfType<TextBox>()
+                .FirstOrDefault(tb => tb.Name == "tickerQuarter");
+
+            if (found != null)
+                found.Text = gameQuarter;
 
             AddTextOutline(found, Colors.Black, 10.0);
 

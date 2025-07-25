@@ -13,6 +13,7 @@
     <None Remove="Font\BebasNeue-Regular.ttf" />
     <None Remove="Font\Crony.ttf" />
     <None Remove="Images\Custom Ticker\Ticker-Clock.png" />
+    <None Remove="Images\Custom Ticker\Ticker-Period.png" />
     <None Remove="Images\Custom Ticker\Ticker-ScoreBarShadow.png" />
     <None Remove="Images\Custom Ticker\Ticker-TeamBackground 1.png" />
     <None Remove="Images\Custom Ticker\Ticker-TeamBackground 2.png" />
@@ -31,6 +32,7 @@
   <ItemGroup>
     <Resource Include="Font\BebasNeue-Regular.ttf" />
     <Resource Include="Font\Crony.ttf" />
+    <Resource Include="Images\Custom Ticker\Ticker-Period.png" />
     <Resource Include="Images\Custom Ticker\Ticker-TeamName R.png" />
   </ItemGroup>
 
