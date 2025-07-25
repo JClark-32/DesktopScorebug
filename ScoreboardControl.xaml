@@ -5,8 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Desktop_Scorebug_WPF"
         mc:Ignorable="d"
+        Loaded="Window_Loaded"
         Title="ScoreboardControl" Height="450" Width="800">
     <Grid>
-        
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel x:Name="ButtonContainer" Orientation="Vertical" Width="600"/>
+        </ScrollViewer>
     </Grid>
 </Window>

@@ -76,16 +76,20 @@ namespace Desktop_Scorebug_WPF
         string todayURLFormatted = DateTime.Today.ToString("yyyyMMdd");
         string yesterdayURLFormatted = DateTime.Today.AddDays(-1).ToString("yyyyMMdd");
 
-        string urlDate = "20250830";
-        string gameName = "Old Dominion Monarchs at Indiana Hoosiers";
-        string league = "college-football";
+        string urlDate = "20241129";
+        //string gameName = "Old Dominion Monarchs at Indiana Hoosiers";
+        //string league = "college-football";
+        string gameName;
+        string league;
 
-            
 
-        public Scoreboard()
+        public Scoreboard(string league, string gameName)
         {
+            this.gameName = gameName;
+            this.league = league;
             InitializeComponent();
             this.Loaded += Window_Loaded; // wire Loaded in code
+            
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -257,9 +261,10 @@ namespace Desktop_Scorebug_WPF
             return array;
         }
 
-        private async Task<string?> getTeamColor(String Matchup, int Team, JArray eventsArray)
+        private async Task<string?> getTeamColor(string Matchup, int Team, JArray eventsArray)
         {
-            string color = "";
+            string defaultColor = "#FFFFFF"; // fallback color
+            string color = defaultColor;
 
             foreach (JObject eventObj in eventsArray)
             {
@@ -270,23 +275,34 @@ namespace Desktop_Scorebug_WPF
                 var competitors = eventObj["competitions"]?[0]?["competitors"] as JArray;
                 if (competitors == null) continue;
 
-                var team = competitors[Team]["team"];
+                var team = competitors[Team]?["team"];
                 if (team == null) continue;
 
                 if (league.Equals("nfl"))
                 {
-                    color = "#" + team["color"]?.ToString();
+                    string? baseColor = team["color"]?.ToString();
+                    color = !string.IsNullOrWhiteSpace(baseColor) ? $"#{baseColor}" : defaultColor;
                 }
                 else
                 {
-                    color = "#" + team["alternateColor"]?.ToString();
+                    string? altColor = team["alternateColor"]?.ToString();
+                    if (!string.IsNullOrWhiteSpace(altColor))
+                    {
+                        color = $"#{altColor}";
+                    }
+                    else
+                    {
+                        string? baseColor = team["color"]?.ToString();
+                        color = !string.IsNullOrWhiteSpace(baseColor) ? $"#{baseColor}" : defaultColor;
+                    }
                 }
-                
-                
-            break;
+
+                break;
             }
+
             return color;
         }
+
 
         private async Task<string?> getAbbreviation(String Matchup, int Team, JArray eventsArray)
         {
