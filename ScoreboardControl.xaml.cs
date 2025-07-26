@@ -35,10 +35,22 @@ namespace Desktop_Scorebug_WPF
             this.Closed += OnParentWindowClosed;
             
         }
+
+        public string FirstLetterToUpper(string str)
+        {
+            if (str == null)
+                return null;
+
+            if (str.Length > 1)
+                return char.ToUpper(str[0]) + str.Substring(1);
+
+            return str.ToUpper();
+        }
         private async void createButtons()
         {
             string urlDate = "20241129";
-            CreateButtonsFromJArray(await getEvents(urlDate, "college-football"));
+            CreateButtonsFromJArray(await getEvents(urlDate, "nfl"), "nfl");
+            CreateButtonsFromJArray(await getEvents(urlDate, "college-football"), "college-football");
         }
         private async Task<JArray> getEvents(String urlDate, String league)
         {
@@ -55,13 +67,33 @@ namespace Desktop_Scorebug_WPF
                     names.Add(nameToken.ToString());
                 }
             }
-            Debug.WriteLine(names.ToString());
+            //Debug.WriteLine(names.ToString());
             return names;
         }
 
-        private void CreateButtonsFromJArray(JArray jsonArray)
+        private void CreateButtonsFromJArray(JArray jsonArray, string league)
         {
-            ButtonContainer.Children.Clear(); // Assuming ButtonContainer is your StackPanel or similar
+            String displayLeague = "";
+            switch (league)
+            {
+                case "college-football":
+                    displayLeague = "College Football";
+                    break;
+                case "nfl":
+                    displayLeague = "NFL";
+                    break;
+            }
+            // Add section header
+            TextBlock headerText = new TextBlock
+            {
+                Text = displayLeague,
+                FontSize = 20,
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(5, 15, 5, 5),
+                Foreground = Brushes.White
+            };
+
+            ButtonContainer.Children.Add(headerText);
 
             foreach (var token in jsonArray)
             {
@@ -72,7 +104,10 @@ namespace Desktop_Scorebug_WPF
                     Content = text,
                     Margin = new Thickness(5),
                     Padding = new Thickness(10),
-                    Width = 500,
+                    MaxWidth = 500,
+                    MinWidth = 20,
+                    Background = new SolidColorBrush(Color.FromRgb(50, 50, 50)),
+                    Foreground = Brushes.White,
                     Tag = text
                 };
 
@@ -80,19 +115,19 @@ namespace Desktop_Scorebug_WPF
                 {
                     if (_scoreboard != null)
                     {
-                        _scoreboard.Close();  // Close existing window
-                        _scoreboard = null;   // Clear reference
+                        _scoreboard.Close();
+                        _scoreboard = null;
                     }
 
-                    _scoreboard = new Scoreboard("college-football", text);
+                    _scoreboard = new Scoreboard(league, text);
                     _scoreboard.Closed += (s, args) => _scoreboard = null;
                     _scoreboard.Show();
-                    //MessageBox.Show($"You clicked: {text}");
                 };
 
                 ButtonContainer.Children.Add(button);
             }
         }
+
 
 
 

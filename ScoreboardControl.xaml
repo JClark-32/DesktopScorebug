@@ -7,9 +7,12 @@
         mc:Ignorable="d"
         Loaded="Window_Loaded"
         Title="ScoreboardControl" Height="450" Width="800">
+    
     <Grid>
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel x:Name="ButtonContainer" Orientation="Vertical" Width="600"/>
+        <Image Name="Background" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                Source="/Images/Window Overlay.png" RenderTransformOrigin="0,0" Stretch="Fill"/>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="10,0,-10,0">
+        <StackPanel x:Name="ButtonContainer" Orientation="Vertical" MaxWidth="400" HorizontalAlignment="Left"/>
         </ScrollViewer>
     </Grid>
 </Window>

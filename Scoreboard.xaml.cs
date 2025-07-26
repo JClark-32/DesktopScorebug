@@ -97,7 +97,7 @@ namespace Desktop_Scorebug_WPF
             CenterTopOnScreen();
             MakeWindowClickThrough();
             TrackMouseAsync(_cts.Token);
-            Debug.WriteLine(DateTime.Now.ToString("H,m"));
+            //Debug.WriteLine(DateTime.Now.ToString("H,m"));
         }
 
         private RECT GetCurrentMonitorWorkArea()
@@ -345,7 +345,7 @@ namespace Desktop_Scorebug_WPF
                 var team = competitors[Team]["score"];
                 if (team == null) continue;
 
-                Debug.Print(team.ToString());
+                //Debug.Print(team.ToString());
 
                 score = team.ToString();
 
@@ -379,7 +379,7 @@ namespace Desktop_Scorebug_WPF
                     break;
                 }
 
-                Debug.Print(status.ToString());
+                //Debug.Print(status.ToString());
 
                 var displayClock = status["displayClock"];
                 if (displayClock == null) continue;
@@ -405,7 +405,7 @@ namespace Desktop_Scorebug_WPF
                 var competition = competitors[0] as JObject;
                 var status = competition["status"] as JObject;
 
-                Debug.Print(status.ToString());
+                //Debug.Print(status.ToString());
 
                 if (competitors == null) continue;
 
@@ -476,6 +476,9 @@ namespace Desktop_Scorebug_WPF
                 break;
             }
             using HttpClient httpClient = new();
+
+            Debug.WriteLine(logoUrl);
+
             byte[] imageBytes = await httpClient.GetByteArrayAsync(logoUrl);
 
             BitmapImage fillBitmap = new BitmapImage();

@@ -27,6 +27,7 @@
     <None Remove="Images\Custom Ticker\Ticker-TeamScore R.png" />
     <None Remove="Images\Custom Ticker\Ticker-TeamScoreBar 1.png" />
     <None Remove="Images\Custom Ticker\TickerCustom-Background.png" />
+    <None Remove="Images\Window Overlay.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,6 +51,7 @@
     <Resource Include="Images\Custom Ticker\Ticker-TeamScore R.png" />
     <Resource Include="Images\Custom Ticker\Ticker-TeamScoreBar 1.png" />
     <Resource Include="Images\Custom Ticker\TickerCustom-Background.png" />
+    <Resource Include="Images\Window Overlay.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -57,6 +59,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Fastenshtein" Version="1.0.10" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.12.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
