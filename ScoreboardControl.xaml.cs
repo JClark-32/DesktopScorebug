@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Dynamic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -11,6 +12,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Newtonsoft.Json.Linq;
@@ -48,10 +50,45 @@ namespace Desktop_Scorebug_WPF
         }
         private async void createButtons()
         {
+            string todayURLFormatted = DateTime.Today.ToString("yyyyMMdd");
+            string yesterdayURLFormatted = DateTime.Today.AddDays(-1).ToString("yyyyMMdd");
+            string daySpread = yesterdayURLFormatted + "-" + todayURLFormatted;
+
             string urlDate = "20241129";
             CreateButtonsFromJArray(await getEvents(urlDate, "nfl"), "nfl");
             CreateButtonsFromJArray(await getEvents(urlDate, "college-football"), "college-football");
         }
+
+        private async Task<string?> getMatchStatus(String Matchup, JArray eventsArray)
+        {
+            string active = "true";
+
+            foreach (JObject eventObj in eventsArray)
+            {
+                string name = eventObj["name"]?.ToString();
+                if (name != Matchup)
+                    continue;
+
+                var competitors = eventObj["competitions"] as JArray;
+                if (competitors == null) continue;
+
+                var competition = competitors[0] as JObject;
+                var status = competition["status"] as JObject;
+                var type = status["type"] as JObject;
+                var finished = type["completed"].ToObject<bool>();
+                var state = type["state"].ToString();
+
+                if (finished == true || state == "pre")
+                {
+                    active = "false";
+                    break;
+                }
+
+                break;
+            }
+            return active;
+        }
+
         private async Task<JArray> getEvents(String urlDate, String league)
         {
             JObject json = await getJsonfromEndpoint(urlDate, league);

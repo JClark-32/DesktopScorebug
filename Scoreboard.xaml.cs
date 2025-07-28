@@ -157,7 +157,6 @@ namespace Desktop_Scorebug_WPF
             }
         }
 
-
         private void FadeOut()
         {
             if (isFadingOut) return;
@@ -389,6 +388,45 @@ namespace Desktop_Scorebug_WPF
                 break;
             }
             return clock;
+        }
+
+        private async void updateScoreboard()
+        {
+            JArray events = await getEvents(gameName, league);
+            string newPeriod = await getPeriod(gameName, events);
+            string newScoreHome = await getScore(gameName, 0, events);
+            string newScoreAway = await getScore(gameName, 1, events);
+            string newTime = await getClock(gameName, events);
+
+
+            TextBox homeScore = (TextBox)RootGrid.Children
+                .OfType<TextBox>()
+                .FirstOrDefault(tb => tb.Name == "TeamScore1");
+
+            if (homeScore != null)
+                homeScore.Text = newScoreHome;
+
+            TextBox awayScore = (TextBox)RootGrid.Children
+                .OfType<TextBox>()
+                .FirstOrDefault(tb => tb.Name == "TeamScore2");
+
+            if (awayScore != null)
+                awayScore.Text = newScoreAway;
+
+            TextBox scoreClock = (TextBox)RootGrid.Children
+                .OfType<TextBox>()
+                .FirstOrDefault(tb => tb.Name == "tickerClock");
+
+            if (scoreClock != null)
+                scoreClock.Text = newTime;
+
+            TextBox period = (TextBox)RootGrid.Children
+                .OfType<TextBox>()
+                .FirstOrDefault(tb => tb.Name == "tickerQuarter");
+
+            if (period != null)
+                period.Text = newPeriod;
+
         }
 
         private async Task<string?> getPeriod(String Matchup, JArray eventsArray)
