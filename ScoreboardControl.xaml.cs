@@ -55,11 +55,38 @@ namespace Desktop_Scorebug_WPF
             string daySpread = yesterdayURLFormatted + "-" + todayURLFormatted;
 
             string urlDate = "20241129";
-            CreateButtonsFromJArray(await getEvents(urlDate, "nfl"), "nfl");
-            CreateButtonsFromJArray(await getEvents(urlDate, "college-football"), "college-football");
+
+            JArray nflEvents = await getEventsArray(urlDate, "nfl");
+            JArray cfbEvents = await getEventsArray(urlDate, "college-football");
+
+            JArray nflArray = await getEventNames(nflEvents);
+            JArray cfbArray = await getEventNames(cfbEvents);
+
+            //CreateButtonsFromJArray(getActiveArray(nflArray, nflEvents), "nfl");
+            //CreateButtonsFromJArray(getActiveArray(cfbArray, cfbEvents), "college-football");
+            CreateButtonsFromJArray(nflArray, "nfl");
+            CreateButtonsFromJArray(cfbArray, "college-football");
         }
 
-        private async Task<string?> getMatchStatus(String Matchup, JArray eventsArray)
+        private JArray getActiveArray(JArray namesArray, JArray eventsArray)
+        {
+            JArray activeArray = new JArray();
+
+            foreach (var Event in namesArray)
+            {
+                string gameName = Event.ToString();
+                if (getMatchStatus(gameName, eventsArray).Equals("true")){
+                    activeArray.Add(gameName);
+                }
+                else
+                {
+                    Debug.WriteLine(getMatchStatus(gameName, eventsArray).ToString());
+                }
+            }
+            return activeArray;
+        }
+
+        private string getMatchStatus(String Matchup, JArray eventsArray)
         {
             string active = "true";
 
@@ -89,13 +116,11 @@ namespace Desktop_Scorebug_WPF
             return active;
         }
 
-        private async Task<JArray> getEvents(String urlDate, String league)
+        private async Task<JArray> getEventNames(JArray eventsArray)
         {
-            JObject json = await getJsonfromEndpoint(urlDate, league);
-            JArray array = (JArray)json["events"];
             JArray names = [];
 
-            foreach (JObject eventObj in array)
+            foreach (JObject eventObj in eventsArray)
             {
                 // This grabs the "name" property if it exists directly in the event object
                 JToken nameToken = eventObj["name"];
@@ -108,60 +133,70 @@ namespace Desktop_Scorebug_WPF
             return names;
         }
 
+        private async Task<JArray> getEventsArray(String urlDate, String league)
+        {
+            JObject json = await getJsonfromEndpoint(urlDate, league);
+            JArray array = (JArray)json["events"];
+            return array;
+        }
+
         private void CreateButtonsFromJArray(JArray jsonArray, string league)
         {
-            String displayLeague = "";
-            switch (league)
+            if (jsonArray.Count != 0)
             {
-                case "college-football":
-                    displayLeague = "College Football";
-                    break;
-                case "nfl":
-                    displayLeague = "NFL";
-                    break;
-            }
-            // Add section header
-            TextBlock headerText = new TextBlock
-            {
-                Text = displayLeague,
-                FontSize = 20,
-                FontWeight = FontWeights.Bold,
-                Margin = new Thickness(5, 15, 5, 5),
-                Foreground = Brushes.White
-            };
-
-            ButtonContainer.Children.Add(headerText);
-
-            foreach (var token in jsonArray)
-            {
-                string text = token.ToString();
-
-                Button button = new Button
+                String displayLeague = "";
+                switch (league)
                 {
-                    Content = text,
-                    Margin = new Thickness(5),
-                    Padding = new Thickness(10),
-                    MaxWidth = 500,
-                    MinWidth = 20,
-                    Background = new SolidColorBrush(Color.FromRgb(50, 50, 50)),
-                    Foreground = Brushes.White,
-                    Tag = text
+                    case "college-football":
+                        displayLeague = "College Football";
+                        break;
+                    case "nfl":
+                        displayLeague = "NFL";
+                        break;
+                }
+                // Add section header
+                TextBlock headerText = new TextBlock
+                {
+                    Text = displayLeague,
+                    FontSize = 20,
+                    FontWeight = FontWeights.Bold,
+                    Margin = new Thickness(5, 15, 5, 5),
+                    Foreground = Brushes.White
                 };
 
-                button.Click += (sender, e) =>
+                ButtonContainer.Children.Add(headerText);
+
+                foreach (var token in jsonArray)
                 {
-                    if (_scoreboard != null)
+                    string text = token.ToString();
+
+                    Button button = new Button
                     {
-                        _scoreboard.Close();
-                        _scoreboard = null;
-                    }
+                        Content = text,
+                        Margin = new Thickness(5),
+                        Padding = new Thickness(10),
+                        MaxWidth = 500,
+                        MinWidth = 20,
+                        Background = new SolidColorBrush(Color.FromRgb(50, 50, 50)),
+                        Foreground = Brushes.White,
+                        Tag = text
+                    };
 
-                    _scoreboard = new Scoreboard(league, text);
-                    _scoreboard.Closed += (s, args) => _scoreboard = null;
-                    _scoreboard.Show();
-                };
+                    button.Click += (sender, e) =>
+                    {
+                        if (_scoreboard != null)
+                        {
+                            _scoreboard.Close();
+                            _scoreboard = null;
+                        }
 
-                ButtonContainer.Children.Add(button);
+                        _scoreboard = new Scoreboard(league, text);
+                        _scoreboard.Closed += (s, args) => _scoreboard = null;
+                        _scoreboard.Show();
+                    };
+
+                    ButtonContainer.Children.Add(button);
+                }
             }
         }
 
