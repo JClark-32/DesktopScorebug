@@ -38,5 +38,7 @@
                Source="/Images/Custom Ticker/Ticker-Clock.png" RenderTransformOrigin="0,0" Loaded="ClockLoaded"/>
         <Image Name="TickerQuarter" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
                Source="/Images/Custom Ticker/Ticker-Period.png" RenderTransformOrigin="0,0" Loaded="QuarterLoaded"/>
+        <Image Name="TickerPlay" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-Play.png" RenderTransformOrigin="0,0" Loaded="PlayLoaded"/>
     </Grid>
 </Window>

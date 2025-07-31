@@ -678,8 +678,25 @@ namespace Desktop_Scorebug_WPF
                 found.Text = gameQuarter;
 
             AddTextOutline(found, Colors.Black, 10.0);
+        }
+
+        private async void PlayLoaded(object sender, RoutedEventArgs e)
+        {
+
+            JArray Events = await getEvents(urlDate, league);
+            //var gameQuarter = await getPeriod(gameName, Events);
+
+            ReplaceSquareInImageWithTextBox(TickerPlay, "tickerPlay");
 
 
+            TextBox found = (TextBox)RootGrid.Children
+                .OfType<TextBox>()
+                .FirstOrDefault(tb => tb.Name == "tickerPlay");
+
+            if (found != null)
+                found.Text = "4th and 15";
+
+            AddTextOutline(found, Colors.Black, 10.0);
         }
 
         //Start color changing group 
