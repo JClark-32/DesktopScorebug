@@ -73,18 +73,14 @@ namespace Desktop_Scorebug_WPF
 
         const uint MONITOR_DEFAULTTONEAREST = 2;
 
-        string todayURLFormatted = DateTime.Today.ToString("yyyyMMdd");
-        string yesterdayURLFormatted = DateTime.Today.AddDays(-1).ToString("yyyyMMdd");
-
-        string urlDate = "20241129";
-        //string gameName = "Old Dominion Monarchs at Indiana Hoosiers";
-        //string league = "college-football";
+        string urlDate;
         string gameName;
         string league;
 
 
-        public Scoreboard(string league, string gameName)
+        public Scoreboard(string league, string gameName, string urlDate)
         {
+            this.urlDate = urlDate;
             this.gameName = gameName;
             this.league = league;
             InitializeComponent();

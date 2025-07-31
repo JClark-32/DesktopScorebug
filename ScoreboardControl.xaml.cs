@@ -56,16 +56,16 @@ namespace Desktop_Scorebug_WPF
 
             string urlDate = "20241129";
 
-            JArray nflEvents = await getEventsArray(urlDate, "nfl");
-            JArray cfbEvents = await getEventsArray(urlDate, "college-football");
+            JArray nflEvents = await getEventsArray(daySpread, "nfl");
+            JArray cfbEvents = await getEventsArray(daySpread, "college-football");
 
             JArray nflArray = await getEventNames(nflEvents);
             JArray cfbArray = await getEventNames(cfbEvents);
 
             //CreateButtonsFromJArray(getActiveArray(nflArray, nflEvents), "nfl");
             //CreateButtonsFromJArray(getActiveArray(cfbArray, cfbEvents), "college-football");
-            CreateButtonsFromJArray(nflArray, "nfl");
-            CreateButtonsFromJArray(cfbArray, "college-football");
+            CreateButtonsFromJArray(nflArray, "nfl", daySpread);
+            CreateButtonsFromJArray(cfbArray, "college-football", daySpread);
         }
 
         private JArray getActiveArray(JArray namesArray, JArray eventsArray)
@@ -140,7 +140,7 @@ namespace Desktop_Scorebug_WPF
             return array;
         }
 
-        private void CreateButtonsFromJArray(JArray jsonArray, string league)
+        private void CreateButtonsFromJArray(JArray jsonArray, string league, string date)
         {
             if (jsonArray.Count != 0)
             {
@@ -190,7 +190,7 @@ namespace Desktop_Scorebug_WPF
                             _scoreboard = null;
                         }
 
-                        _scoreboard = new Scoreboard(league, text);
+                        _scoreboard = new Scoreboard(league, text, date);
                         _scoreboard.Closed += (s, args) => _scoreboard = null;
                         _scoreboard.Show();
                     };
