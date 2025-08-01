@@ -34,11 +34,32 @@
                Source="/Images/Custom Ticker/Ticker-TeamScore L.png" RenderTransformOrigin="0,0" Loaded="TeamScoreLoadedL"/>
         <Image Name="TeamScore2" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
                Source="/Images/Custom Ticker/Ticker-TeamScore R.png" RenderTransformOrigin="0,0" Loaded="TeamScoreLoadedR"/>
+        <Image Name="TeamPossession1" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-Possession L.png" RenderTransformOrigin="0,0" Loaded="TeamPossessionLoadedL"/>
+        <Image Name="TeamPossession2" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-Possession R.png" RenderTransformOrigin="0,0" Loaded="TeamPossessionLoadedR"/>
+        <Image Name="TeamTimeOutBar1" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-TimeOutBar L.png" RenderTransformOrigin="0,0"/>
+        <Image Name="TeamTimeOut1L" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-TimeOut1 L.png" RenderTransformOrigin="0,0"/>
+        <Image Name="TeamTimeOut2L" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-TimeOut2 L.png" RenderTransformOrigin="0,0"/>
+        <Image Name="TeamTimeOut3L" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-TimeOut3 L.png" RenderTransformOrigin="0,0"/>
+        <Image Name="TeamTimeOutBar2" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-TimeOutBar R.png" RenderTransformOrigin="0,0"/>
+        <Image Name="TeamTimeOut1R" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-TimeOut1 R.png" RenderTransformOrigin="0,0"/>
+        <Image Name="TeamTimeOut2R" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-TimeOut2 R.png" RenderTransformOrigin="0,0"/>
+        <Image Name="TeamTimeOut3R" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
+               Source="/Images/Custom Ticker/Ticker-TimeOut3 R.png" RenderTransformOrigin="0,0"/>
         <Image Name="TickerClock" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
                Source="/Images/Custom Ticker/Ticker-Clock.png" RenderTransformOrigin="0,0" Loaded="ClockLoaded"/>
         <Image Name="TickerQuarter" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
                Source="/Images/Custom Ticker/Ticker-Period.png" RenderTransformOrigin="0,0" Loaded="QuarterLoaded"/>
         <Image Name="TickerPlay" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
                Source="/Images/Custom Ticker/Ticker-Play.png" RenderTransformOrigin="0,0" Loaded="PlayLoaded"/>
+        
     </Grid>
 </Window>

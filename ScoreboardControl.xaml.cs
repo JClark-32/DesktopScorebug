@@ -41,7 +41,7 @@ namespace Desktop_Scorebug_WPF
         public string FirstLetterToUpper(string str)
         {
             if (str == null)
-                return null;
+                return "";
 
             if (str.Length > 1)
                 return char.ToUpper(str[0]) + str.Substring(1);
@@ -54,18 +54,18 @@ namespace Desktop_Scorebug_WPF
             string yesterdayURLFormatted = DateTime.Today.AddDays(-1).ToString("yyyyMMdd");
             string daySpread = yesterdayURLFormatted + "-" + todayURLFormatted;
 
-            string urlDate = "20241129";
+            //string urlDate = "20241129";
 
             JArray nflEvents = await getEventsArray(daySpread, "nfl");
             JArray cfbEvents = await getEventsArray(daySpread, "college-football");
 
-            JArray nflArray = await getEventNames(nflEvents);
-            JArray cfbArray = await getEventNames(cfbEvents);
+            JArray nflArray = getEventNames(nflEvents);
+            JArray cfbArray = getEventNames(cfbEvents);
 
-            //CreateButtonsFromJArray(getActiveArray(nflArray, nflEvents), "nfl");
-            //CreateButtonsFromJArray(getActiveArray(cfbArray, cfbEvents), "college-football");
-            CreateButtonsFromJArray(nflArray, "nfl", daySpread);
-            CreateButtonsFromJArray(cfbArray, "college-football", daySpread);
+            CreateButtonsFromJArray(getActiveArray(nflArray, nflEvents), "nfl", daySpread);
+            CreateButtonsFromJArray(getActiveArray(cfbArray, cfbEvents), "college-football", daySpread);
+            //CreateButtonsFromJArray(nflArray, "nfl", daySpread);
+            //CreateButtonsFromJArray(cfbArray, "college-football", daySpread);
         }
 
         private JArray getActiveArray(JArray namesArray, JArray eventsArray)
@@ -100,10 +100,18 @@ namespace Desktop_Scorebug_WPF
                 if (competitors == null) continue;
 
                 var competition = competitors[0] as JObject;
+                if (competition == null) continue;
                 var status = competition["status"] as JObject;
+                if (status == null) continue;
                 var type = status["type"] as JObject;
-                var finished = type["completed"].ToObject<bool>();
-                var state = type["state"].ToString();
+                if (type == null) continue;
+                var completed = type["completed"] as JObject;
+                if (completed == null) continue;
+                var gameState = type["state"] as JObject;
+                if (gameState == null) continue;
+
+                var finished = completed.ToObject<bool>();
+                var state = gameState.ToString();
 
                 if (finished == true || state == "pre")
                 {
@@ -116,7 +124,7 @@ namespace Desktop_Scorebug_WPF
             return active;
         }
 
-        private async Task<JArray> getEventNames(JArray eventsArray)
+        private JArray getEventNames(JArray eventsArray)
         {
             JArray names = [];
 
@@ -137,6 +145,8 @@ namespace Desktop_Scorebug_WPF
         {
             JObject json = await getJsonfromEndpoint(urlDate, league);
             JArray array = (JArray)json["events"];
+            if (array == null) 
+                return [];
             return array;
         }
 
@@ -187,7 +197,7 @@ namespace Desktop_Scorebug_WPF
                         if (_scoreboard != null)
                         {
                             _scoreboard.Close();
-                            _scoreboard = null;
+                            //_scoreboard = null;
                         }
 
                         _scoreboard = new Scoreboard(league, text, date);
@@ -217,14 +227,14 @@ namespace Desktop_Scorebug_WPF
             {
                 Console.WriteLine($"Request error: {ex.Message}");
             }
-            return null;
+            return [];
         }
         private void OnParentWindowClosed(object? sender, EventArgs e)
         {
             if (_scoreboard != null)
             {
                 _scoreboard.Close();
-                _scoreboard = null;
+                //_scoreboard = null;
             }
         }
 

@@ -19,6 +19,8 @@ using System.Text.RegularExpressions;
 using System.Text.Json;
 using System.Dynamic;
 using System.Text;
+using System.Windows.Threading;
+using System.Xml.Serialization;
 
 namespace Desktop_Scorebug_WPF
 {
@@ -77,15 +79,29 @@ namespace Desktop_Scorebug_WPF
         string gameName;
         string league;
 
-
+        private DispatcherTimer _timer;
         public Scoreboard(string league, string gameName, string urlDate)
         {
             this.urlDate = urlDate;
             this.gameName = gameName;
             this.league = league;
             InitializeComponent();
-            this.Loaded += Window_Loaded; // wire Loaded in code
+            InitializeTimer();
+            this.Loaded += Window_Loaded;
             
+        }
+
+        private void InitializeTimer()
+        {
+            _timer = new DispatcherTimer();
+            _timer.Interval = TimeSpan.FromSeconds(5);
+            _timer.Tick += Timer_Tick;
+            _timer.Start();
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            updateScoreboard();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -250,13 +266,13 @@ namespace Desktop_Scorebug_WPF
         private async Task<JArray> getEvents(String urlDate, String league)
         {
             JObject json = await getJsonfromEndpoint(urlDate, league);
-            //JObject ojObject = (JObject)json["content"];
-            //JObject ojObject1 = (JObject)ojObject["sbData"];
             JArray array = (JArray)json["events"];
+            if(array == null) 
+                return [];
             return array;
         }
 
-        private async Task<string?> getTeamColor(string Matchup, int Team, JArray eventsArray)
+        private string getTeamColor(string Matchup, int Team, JArray eventsArray)
         {
             string defaultColor = "#FFFFFF"; // fallback color
             string color = defaultColor;
@@ -299,7 +315,7 @@ namespace Desktop_Scorebug_WPF
         }
 
 
-        private async Task<string?> getAbbreviation(String Matchup, int Team, JArray eventsArray)
+        private string getAbbreviation(String Matchup, int Team, JArray eventsArray)
         {
             string abbreviation = "";
 
@@ -324,7 +340,32 @@ namespace Desktop_Scorebug_WPF
             return abbreviation;
         }
 
-        private async Task<string?> getScore(String Matchup, int Team, JArray eventsArray)
+        private string getTeamID(String Matchup, int Team, JArray eventsArray)
+        {
+            string Id = "";
+
+            foreach (JObject eventObj in eventsArray)
+            {
+                string name = eventObj["name"]?.ToString();
+                if (name != Matchup)
+                    continue;
+
+                var competitors = eventObj["competitions"]?[0]?["competitors"] as JArray;
+                if (competitors == null) continue;
+
+                var team = competitors[Team]["team"];
+                if (team == null) continue;
+
+
+                Id = team["id"]?.ToString();
+
+
+                break;
+            }
+            return Id;
+        }
+
+        private string getScore(String Matchup, int Team, JArray eventsArray)
         {
             string score = "";
 
@@ -350,7 +391,7 @@ namespace Desktop_Scorebug_WPF
             return score;
         }
 
-        private async Task<string?> getClock(String Matchup, JArray eventsArray)
+        private string getClock(String Matchup, JArray eventsArray)
         {
             string clock = "";
 
@@ -367,7 +408,14 @@ namespace Desktop_Scorebug_WPF
                 var status = competition["status"] as JObject;
                 var type = status["type"] as JObject;
                 var finished = type["completed"].ToObject<bool>();
+                var detail = type["detail"].ToString();
                 
+                if (detail.Equals("Halftime"))
+                {
+                    clock = "HALF";
+                    break;
+                }
+
                 if (finished == true)
                 {
                     clock = "FINAL";
@@ -386,14 +434,168 @@ namespace Desktop_Scorebug_WPF
             return clock;
         }
 
+        private void updateTimeoutScoreboard(int team, JArray events)
+        {
+            int timeouts = getTimeOuts(gameName, team, events);
+            Image timeOuts1 = null;
+            Image timeOuts2 = null;
+            Image timeOuts3 = null;
+
+            if (team == 0)
+            {
+                timeOuts1 = (Image)RootGrid.Children
+                    .OfType<Image>()
+                    .FirstOrDefault(im => im.Name == "TeamTimeOut1L");
+                timeOuts2 = (Image)RootGrid.Children
+                    .OfType<Image>()
+                    .FirstOrDefault(im => im.Name == "TeamTimeOut2L");
+                timeOuts3 = (Image)RootGrid.Children
+                    .OfType<Image>()
+                    .FirstOrDefault(im => im.Name == "TeamTimeOut3L");
+            }
+            else if (team == 1)
+            {
+                timeOuts1 = (Image)RootGrid.Children
+                    .OfType<Image>()
+                    .FirstOrDefault(im => im.Name == "TeamTimeOut1R");
+                timeOuts2 = (Image)RootGrid.Children
+                    .OfType<Image>()
+                    .FirstOrDefault(im => im.Name == "TeamTimeOut2R");
+                timeOuts3 = (Image)RootGrid.Children
+                    .OfType<Image>()
+                    .FirstOrDefault(im => im.Name == "TeamTimeOut3R");
+            }
+
+            switch (timeouts)
+            {
+                case 1:
+                    timeOuts1.Visibility = Visibility.Visible;
+                    timeOuts2.Visibility = Visibility.Hidden;
+                    timeOuts3.Visibility = Visibility.Hidden;
+                    break ;
+                case 2:
+                    timeOuts1.Visibility = Visibility.Visible;
+                    timeOuts2.Visibility = Visibility.Visible;
+                    timeOuts3.Visibility = Visibility.Hidden;
+                    break;
+                case 3:
+                    timeOuts1.Visibility = Visibility.Visible;
+                    timeOuts2.Visibility = Visibility.Visible;
+                    timeOuts3.Visibility = Visibility.Visible;
+                    break;
+                default:
+                    timeOuts1.Visibility = Visibility.Hidden;
+                    timeOuts2.Visibility = Visibility.Hidden;
+                    timeOuts3.Visibility = Visibility.Hidden;
+                    break;
+            }
+        }
+
+        private int getTimeOuts(String Matchup, int team, JArray eventsArray)
+        {
+            int timeouts = 0;
+
+            foreach (JObject eventObj in eventsArray)
+            {
+                string name = eventObj["name"]?.ToString();
+                //Debug.WriteLine(name);
+                //Debug.WriteLine(Matchup);
+
+                if (name != Matchup)
+                    continue;
+
+                var competitors = eventObj["competitions"] as JArray;
+                if (competitors == null) continue;
+
+                var competition = competitors[0] as JObject;
+
+                var status = competition["situation"] as JObject;
+
+                if (team == 1)
+                {
+                    timeouts = status["homeTimeouts"].ToObject<int>();
+                }
+                else if (team == 0)
+                {
+                    timeouts = status["awayTimeouts"].ToObject<int>();
+                }
+
+                break;
+            }
+            return timeouts;
+        }
+
+        private string getDownDistance(String Matchup, JArray eventsArray)
+        {
+            string DownDistance = "";
+
+            foreach (JObject eventObj in eventsArray)
+            {
+                string name = eventObj["name"]?.ToString();
+                //Debug.WriteLine(name);
+                //Debug.WriteLine(Matchup);
+
+                if (name != Matchup)
+                    continue;
+
+                var competitors = eventObj["competitions"] as JArray;
+                if (competitors == null) continue;
+
+                var competition = competitors[0] as JObject;
+
+                var status = competition["situation"] as JObject;
+
+                var downDistanceText = status["shortDownDistanceText"];
+                if (downDistanceText == null) continue;
+
+                DownDistance = downDistanceText.ToString();
+
+                break;
+            }
+            return DownDistance;
+        }
+
+        private string getPossession(String Matchup, JArray eventsArray)
+        {
+            string PossessionID = "";
+
+            foreach (JObject eventObj in eventsArray)
+            {
+                string name = eventObj["name"]?.ToString();
+                //Debug.WriteLine(name);
+                //Debug.WriteLine(Matchup);
+
+                if (name != Matchup)
+                    continue;
+
+                var competitors = eventObj["competitions"] as JArray;
+                if (competitors == null) continue;
+
+                var competition = competitors[0] as JObject;
+
+                var status = competition["situation"] as JObject;
+
+                var possessionText = status["possession"];
+                if (possessionText == null) continue;
+
+                PossessionID = possessionText.ToString();
+
+                break;
+            }
+            return PossessionID;
+        }
+
+
         private async void updateScoreboard()
         {
-            JArray events = await getEvents(gameName, league);
+            JArray events = await getEvents(urlDate, league);
             string newPeriod = await getPeriod(gameName, events);
-            string newScoreHome = await getScore(gameName, 0, events);
-            string newScoreAway = await getScore(gameName, 1, events);
-            string newTime = await getClock(gameName, events);
-
+            string newScoreHome = getScore(gameName, 1, events);
+            string newScoreAway = getScore(gameName, 0, events);
+            string newTime = getClock(gameName, events);
+            string newDowns = getDownDistance(gameName, events);
+            string posessionID = getPossession(gameName, events);
+            //Debug.WriteLine("updated");
 
             TextBox homeScore = (TextBox)RootGrid.Children
                 .OfType<TextBox>()
@@ -423,6 +625,39 @@ namespace Desktop_Scorebug_WPF
             if (period != null)
                 period.Text = newPeriod;
 
+            TextBox downs = (TextBox)RootGrid.Children
+                .OfType<TextBox>()
+                .FirstOrDefault(tb => tb.Name == "tickerPlay");
+
+            if (downs != null)
+                downs.Text = newDowns;
+
+            Image PosessionL = (Image)RootGrid.Children
+                .OfType<Image>()
+                .FirstOrDefault(im => im.Name == "TeamPossession1");
+
+            Image PosessionR = (Image)RootGrid.Children
+                .OfType<Image>()
+                .FirstOrDefault(im => im.Name == "TeamPossession2");
+
+
+            string team0ID = getTeamID(gameName, 0, events);
+            string team1ID = getTeamID(gameName, 1, events);
+
+            //Debug.WriteLine(team0ID);
+            //Debug.WriteLine(posessionID);
+
+            if (posessionID.Equals(team1ID)){
+                PosessionL.Visibility = Visibility.Visible;
+                PosessionR.Visibility = Visibility.Hidden;
+            }
+            else if (posessionID.Equals(team0ID)){
+                PosessionR.Visibility = Visibility.Visible;
+                PosessionL.Visibility = Visibility.Hidden;
+            }
+
+            updateTimeoutScoreboard(0, events);
+            updateTimeoutScoreboard(1, events);
         }
 
         private async Task<string?> getPeriod(String Matchup, JArray eventsArray)
@@ -645,7 +880,7 @@ namespace Desktop_Scorebug_WPF
         {
 
             JArray Events = await getEvents(urlDate, league);
-            var gameClock = await getClock(gameName, Events);
+            var gameClock = getClock(gameName, Events);
 
             ReplaceSquareInImageWithTextBox(TickerClock, "tickerClock");
 
@@ -658,9 +893,26 @@ namespace Desktop_Scorebug_WPF
                 found.Text = gameClock;
 
             AddTextOutline(found, Colors.Black, 10.0);
-
-
         }
+
+
+        private async void TeamPossessionLoadedL(object sender, RoutedEventArgs e)
+        {
+            Image found = (Image)RootGrid.Children
+                .OfType<Image>()
+                .FirstOrDefault(im => im.Name == "TeamPossession1");
+            if (found != null)
+                found.Visibility = Visibility.Hidden;
+        }
+        private async void TeamPossessionLoadedR(object sender, RoutedEventArgs e)
+        {
+            Image found = (Image)RootGrid.Children
+                .OfType<Image>()
+                .FirstOrDefault(im => im.Name == "TeamPossession2");
+            if (found != null)
+                found.Visibility = Visibility.Hidden;
+        }
+
         private async void QuarterLoaded(object sender, RoutedEventArgs e)
         {
 
@@ -684,7 +936,7 @@ namespace Desktop_Scorebug_WPF
         {
 
             JArray Events = await getEvents(urlDate, league);
-            //var gameQuarter = await getPeriod(gameName, Events);
+            var DownText = getDownDistance(gameName, Events);
 
             ReplaceSquareInImageWithTextBox(TickerPlay, "tickerPlay");
 
@@ -694,7 +946,7 @@ namespace Desktop_Scorebug_WPF
                 .FirstOrDefault(tb => tb.Name == "tickerPlay");
 
             if (found != null)
-                found.Text = "4th and 15";
+                found.Text = DownText;
 
             AddTextOutline(found, Colors.Black, 10.0);
         }
@@ -842,31 +1094,31 @@ namespace Desktop_Scorebug_WPF
         private async void BGColorLoadedL(object sender, RoutedEventArgs e)
         {
             JArray Events = await getEvents(urlDate, league);
-            var TeamColor1 = System.Drawing.ColorTranslator.FromHtml(await getTeamColor(gameName, 0, Events));
+            var TeamColor1 = System.Drawing.ColorTranslator.FromHtml(getTeamColor(gameName, 1, Events));
             RecolorImageWithAlpha(BackGroundTeamColor1, TeamColor1);
         }
         private async void BGColorLoadedR(object sender, RoutedEventArgs e)
         {
             JArray Events = await getEvents(urlDate, league);
-            var TeamColor1 = System.Drawing.ColorTranslator.FromHtml(await getTeamColor(gameName, 1, Events));
+            var TeamColor1 = System.Drawing.ColorTranslator.FromHtml(getTeamColor(gameName, 0, Events));
             RecolorImageWithAlpha(BackGroundTeamColor2, TeamColor1);
         }
         private async void TeamLogoLoadedL(object sender, RoutedEventArgs e)
         {
             JArray Events = await getEvents(urlDate, league);
-            BitmapImage fillBitmap = await getTeamLogo(gameName, 0, Events);
+            BitmapImage fillBitmap = await getTeamLogo(gameName, 1, Events);
             FillImageWithImageMask(TeamLogo1, new Image { Source = fillBitmap });
         }
         private async void TeamLogoLoadedR(object sender, RoutedEventArgs e)
         {
             JArray Events = await getEvents(urlDate, league);
-            BitmapImage fillBitmap = await getTeamLogo(gameName, 1, Events);
+            BitmapImage fillBitmap = await getTeamLogo(gameName, 0, Events);
             FillImageWithImageMask(TeamLogo2, new Image { Source = fillBitmap });
         }
         private async void TeamNameLoadedL(object sender, RoutedEventArgs e)
         {
             JArray Events = await getEvents(urlDate, league);
-            var Team1Abr = await getAbbreviation(gameName, 0, Events);
+            var Team1Abr = getAbbreviation(gameName, 1, Events);
             ReplaceSquareInImageWithTextBox(TeamName1, "TeamName1ABR");
 
             TextBox found = (TextBox)RootGrid.Children
@@ -874,15 +1126,16 @@ namespace Desktop_Scorebug_WPF
                 .FirstOrDefault(tb => tb.Name == "TeamName1ABR");
 
             if (found != null)
+            {
                 found.Text = Team1Abr;
-
-            AddTextOutline(found, Colors.Black, 10.0);
+                AddTextOutline(found, Colors.Black, 10.0);
+            }
 
         }
         private async void TeamNameLoadedR(object sender, RoutedEventArgs e)
         {
             JArray Events = await getEvents(urlDate, league);
-            var Team1Abr = await getAbbreviation(gameName, 1, Events);
+            var Team1Abr = getAbbreviation(gameName, 0, Events);
             ReplaceSquareInImageWithTextBox(TeamName2, "TeamName2ABR");
 
             TextBox found = (TextBox)RootGrid.Children
@@ -890,16 +1143,16 @@ namespace Desktop_Scorebug_WPF
                 .FirstOrDefault(tb => tb.Name == "TeamName2ABR");
 
             if (found != null)
+            {
                 found.Text = Team1Abr;
-
-            AddTextOutline(found, Colors.Black, 10.0);
-
+                AddTextOutline(found, Colors.Black, 10.0);
+            }
         }
 
         private async void TeamScoreLoadedL(object sender, RoutedEventArgs e)
         {
             JArray Events = await getEvents(urlDate, league);
-            var Team1Score = await getScore(gameName, 0, Events);
+            var Team1Score = getScore(gameName, 1, Events);
             ReplaceSquareInImageWithTextBox(TeamScore1, "TeamScore1");
 
             TextBox found = (TextBox)RootGrid.Children
@@ -907,15 +1160,16 @@ namespace Desktop_Scorebug_WPF
                 .FirstOrDefault(tb => tb.Name == "TeamScore1");
 
             if (found != null)
+            {
                 found.Text = Team1Score;
-
-            AddTextOutline(found, Colors.Black, 10.0);
+                AddTextOutline(found, Colors.Black, 10.0);
+            }
 
         }
         private async void TeamScoreLoadedR(object sender, RoutedEventArgs e)
         {
             JArray Events = await getEvents(urlDate, league);
-            var Team2Score = await getScore(gameName, 1, Events);
+            var Team2Score = getScore(gameName, 0, Events);
             ReplaceSquareInImageWithTextBox(TeamScore2, "TeamScore2");
 
             TextBox found = (TextBox)RootGrid.Children
@@ -923,9 +1177,10 @@ namespace Desktop_Scorebug_WPF
                 .FirstOrDefault(tb => tb.Name == "TeamScore2");
 
             if (found != null)
+            {
                 found.Text = Team2Score;
-
-            AddTextOutline(found, Colors.Black, 10.0);
+                AddTextOutline(found, Colors.Black, 10.0);
+            }
 
         }
         //end color change group
