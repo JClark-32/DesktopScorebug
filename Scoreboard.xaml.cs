@@ -510,6 +510,7 @@ namespace Desktop_Scorebug_WPF
                 var competition = competitors[0] as JObject;
 
                 var status = competition["situation"] as JObject;
+                if (status == null) continue;
 
                 if (team == 1)
                 {
@@ -544,6 +545,7 @@ namespace Desktop_Scorebug_WPF
                 var competition = competitors[0] as JObject;
 
                 var status = competition["situation"] as JObject;
+                if (status == null) continue;
 
                 var downDistanceText = status["shortDownDistanceText"];
                 if (downDistanceText == null) continue;
@@ -574,6 +576,7 @@ namespace Desktop_Scorebug_WPF
                 var competition = competitors[0] as JObject;
 
                 var status = competition["situation"] as JObject;
+                if (status == null) continue;
 
                 var possessionText = status["possession"];
                 if (possessionText == null) continue;
@@ -653,6 +656,11 @@ namespace Desktop_Scorebug_WPF
             }
             else if (posessionID.Equals(team0ID)){
                 PosessionR.Visibility = Visibility.Visible;
+                PosessionL.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                PosessionR.Visibility = Visibility.Hidden;
                 PosessionL.Visibility = Visibility.Hidden;
             }
 

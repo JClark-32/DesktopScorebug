@@ -62,10 +62,10 @@ namespace Desktop_Scorebug_WPF
             JArray nflArray = getEventNames(nflEvents);
             JArray cfbArray = getEventNames(cfbEvents);
 
-            CreateButtonsFromJArray(getActiveArray(nflArray, nflEvents), "nfl", daySpread);
-            CreateButtonsFromJArray(getActiveArray(cfbArray, cfbEvents), "college-football", daySpread);
-            //CreateButtonsFromJArray(nflArray, "nfl", daySpread);
-            //CreateButtonsFromJArray(cfbArray, "college-football", daySpread);
+            //CreateButtonsFromJArray(getActiveArray(nflArray, nflEvents), "nfl", daySpread);
+            //CreateButtonsFromJArray(getActiveArray(cfbArray, cfbEvents), "college-football", daySpread);
+            CreateButtonsFromJArray(nflArray, "nfl", daySpread);
+            CreateButtonsFromJArray(cfbArray, "college-football", daySpread);
         }
 
         private JArray getActiveArray(JArray namesArray, JArray eventsArray)
@@ -97,21 +97,26 @@ namespace Desktop_Scorebug_WPF
                     continue;
 
                 var competitors = eventObj["competitions"] as JArray;
-                if (competitors == null) continue;
+                //if (competitors == null) continue;
 
                 var competition = competitors[0] as JObject;
-                if (competition == null) continue;
+                //if (competition == null) continue;
                 var status = competition["status"] as JObject;
-                if (status == null) continue;
+                //if (status == null) continue;
                 var type = status["type"] as JObject;
-                if (type == null) continue;
-                var completed = type["completed"] as JObject;
-                if (completed == null) continue;
-                var gameState = type["state"] as JObject;
-                if (gameState == null) continue;
+                //if (type == null) continue;
+                Debug.WriteLine(type.ToString());
 
-                var finished = completed.ToObject<bool>();
-                var state = gameState.ToString();
+                var completed = type["completed"].ToObject<bool>();
+                //if (completed == null) continue;
+                var gameState = type["state"].ToString();
+                //if (gameState == null) continue;
+
+                Debug.WriteLine("yo");
+                var finished = completed;
+                
+
+                var state = gameState;
 
                 if (finished == true || state == "pre")
                 {
