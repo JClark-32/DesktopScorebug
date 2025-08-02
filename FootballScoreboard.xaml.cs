@@ -24,7 +24,7 @@ using System.Xml.Serialization;
 
 namespace Desktop_Scorebug_WPF
 {
-    public partial class Scoreboard : Window
+    public partial class FootballScoreboard : Window
     {
         [StructLayout(LayoutKind.Sequential)]
         public struct POINT
@@ -80,7 +80,7 @@ namespace Desktop_Scorebug_WPF
         string league;
 
         private DispatcherTimer _timer;
-        public Scoreboard(string league, string gameName, string urlDate)
+        public FootballScoreboard(string league, string gameName, string urlDate)
         {
             this.urlDate = urlDate;
             this.gameName = gameName;

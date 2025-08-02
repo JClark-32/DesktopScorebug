@@ -25,7 +25,9 @@ namespace Desktop_Scorebug_WPF
     public partial class ScoreboardControl : Window
     {
 
-        private Scoreboard _scoreboard;
+        private FootballScoreboard _scoreboard;
+        private NascarTicker _ticker;
+
         public ScoreboardControl()
         {
             InitializeComponent();
@@ -66,6 +68,7 @@ namespace Desktop_Scorebug_WPF
             //CreateButtonsFromJArray(getActiveArray(cfbArray, cfbEvents), "college-football", daySpread);
             CreateButtonsFromJArray(nflArray, "nfl", daySpread);
             CreateButtonsFromJArray(cfbArray, "college-football", daySpread);
+            CreateButtonsFromJArray(["Testing"], "nascar", daySpread);
         }
 
         private JArray getActiveArray(JArray namesArray, JArray eventsArray)
@@ -168,6 +171,9 @@ namespace Desktop_Scorebug_WPF
                     case "nfl":
                         displayLeague = "NFL";
                         break;
+                    case "nascar":
+                        displayLeague = "Nascar Testing";
+                        break;
                 }
                 // Add section header
                 TextBlock headerText = new TextBlock
@@ -202,12 +208,23 @@ namespace Desktop_Scorebug_WPF
                         if (_scoreboard != null)
                         {
                             _scoreboard.Close();
-                            //_scoreboard = null;
                         }
-
-                        _scoreboard = new Scoreboard(league, text, date);
-                        _scoreboard.Closed += (s, args) => _scoreboard = null;
-                        _scoreboard.Show();
+                        if (_ticker != null) 
+                        {
+                            _ticker.Close();
+                        }
+                        if (league.Equals("nfl") || league.Equals("college-football"))
+                        {
+                            _scoreboard = new FootballScoreboard(league, text, date);
+                            _scoreboard.Closed += (s, args) => _scoreboard = null;
+                            _scoreboard.Show();
+                        }
+                        if (league.Equals("nascar"))
+                        {
+                            _ticker = new NascarTicker();
+                            _ticker.Closed += (s, args) => _ticker = null;
+                            _ticker.Show();
+                        }
                     };
 
                     ButtonContainer.Children.Add(button);
@@ -241,6 +258,11 @@ namespace Desktop_Scorebug_WPF
                 _scoreboard.Close();
                 //_scoreboard = null;
             }
+            if (_ticker != null)
+            {
+                _ticker.Close();
+            }
+
         }
 
     }

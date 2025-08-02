@@ -36,6 +36,9 @@
     <None Remove="Images\Custom Ticker\Football\Ticker-TimeOutBar R.png" />
     <None Remove="Images\Custom Ticker\Football\TickerCustom-Background.png" />
     <None Remove="Images\Custom Ticker\Football\TickerCustom-Detail.png" />
+    <None Remove="Images\Custom Ticker\Nascar\Ticker-Base.png" />
+    <None Remove="Images\Custom Ticker\Nascar\Ticker-Flag.png" />
+    <None Remove="Images\Custom Ticker\Nascar\Ticker-ScrollBar.png" />
     <None Remove="Images\Custom Ticker\Ticker-Period.png" />
     <None Remove="Images\Custom Ticker\Ticker-Play.png" />
     <None Remove="Images\Custom Ticker\Ticker-Possession L.png" />
@@ -91,6 +94,9 @@
     <Resource Include="Images\Custom Ticker\Football\Ticker-TimeOutBar R.png" />
     <Resource Include="Images\Custom Ticker\Football\TickerCustom-Background.png" />
     <Resource Include="Images\Custom Ticker\Football\TickerCustom-Detail.png" />
+    <Resource Include="Images\Custom Ticker\Nascar\Ticker-Base.png" />
+    <Resource Include="Images\Custom Ticker\Nascar\Ticker-Flag.png" />
+    <Resource Include="Images\Custom Ticker\Nascar\Ticker-ScrollBar.png" />
   </ItemGroup>
 
   <ItemGroup>
