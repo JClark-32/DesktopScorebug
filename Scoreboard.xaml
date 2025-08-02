@@ -15,51 +15,51 @@
         Title="Scoreboard" Height="112" Width="1100" VerticalAlignment="Top">
     <Grid x:Name="RootGrid">
         <Image Name="BackgroundBase" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100" 
-               Source="/Images/Custom Ticker/TickerCustom-Background.png" RenderTransformOrigin="0,0"/>
+               Source="/Images/Custom Ticker/Football/TickerCustom-Background.png" RenderTransformOrigin="0,0"/>
         <Image Name="BackGroundTeamColor1" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TeamBackground 1.png" RenderTransformOrigin="0,0" Loaded="BGColorLoadedL"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TeamBackground 1.png" RenderTransformOrigin="0,0" Loaded="BGColorLoadedL"/>
         <Image Name="BackGroundTeamColor2" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TeamBackground 2.png" RenderTransformOrigin="0,0" Loaded="BGColorLoadedR"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TeamBackground 2.png" RenderTransformOrigin="0,0" Loaded="BGColorLoadedR"/>
         <Image Name="BackGroundTeamScoreBar1" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-ScoreBarShadow.png" RenderTransformOrigin="0,0"/>
+               Source="/Images/Custom Ticker/Football/Ticker-ScoreBarShadow.png" RenderTransformOrigin="0,0"/>
         <Image Name="TeamLogo1" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TeamLogoL-1.png" RenderTransformOrigin="0,0" Loaded="TeamLogoLoadedL"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TeamLogoL-1.png" RenderTransformOrigin="0,0" Loaded="TeamLogoLoadedL"/>
         <Image Name="TeamLogo2" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TeamLogoR.png" RenderTransformOrigin="0,0" Loaded="TeamLogoLoadedR"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TeamLogoR.png" RenderTransformOrigin="0,0" Loaded="TeamLogoLoadedR"/>
         <Image Name="TeamName1" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TeamName L.png" RenderTransformOrigin="0,0" Loaded="TeamNameLoadedL"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TeamName L.png" RenderTransformOrigin="0,0" Loaded="TeamNameLoadedL"/>
         <Image Name="TeamName2" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TeamName R.png" RenderTransformOrigin="0,0" Loaded="TeamNameLoadedR"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TeamName R.png" RenderTransformOrigin="0,0" Loaded="TeamNameLoadedR"/>
         <Image Name="TeamScore1" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TeamScore L.png" RenderTransformOrigin="0,0" Loaded="TeamScoreLoadedL"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TeamScore L.png" RenderTransformOrigin="0,0" Loaded="TeamScoreLoadedL"/>
         <Image Name="TeamScore2" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TeamScore R.png" RenderTransformOrigin="0,0" Loaded="TeamScoreLoadedR"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TeamScore R.png" RenderTransformOrigin="0,0" Loaded="TeamScoreLoadedR"/>
         <Image Name="TeamPossession1" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-Possession L.png" RenderTransformOrigin="0,0" Loaded="TeamPossessionLoadedL"/>
+               Source="/Images/Custom Ticker/Football/Ticker-Possession L.png" RenderTransformOrigin="0,0" Loaded="TeamPossessionLoadedL"/>
         <Image Name="TeamPossession2" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-Possession R.png" RenderTransformOrigin="0,0" Loaded="TeamPossessionLoadedR"/>
+               Source="/Images/Custom Ticker/Football/Ticker-Possession R.png" RenderTransformOrigin="0,0" Loaded="TeamPossessionLoadedR"/>
         <Image Name="TeamTimeOutBar1" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TimeOutBar L.png" RenderTransformOrigin="0,0"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TimeOutBar L.png" RenderTransformOrigin="0,0"/>
         <Image Name="TeamTimeOut1L" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TimeOut1 L.png" RenderTransformOrigin="0,0"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TimeOut1 L.png" RenderTransformOrigin="0,0"/>
         <Image Name="TeamTimeOut2L" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TimeOut2 L.png" RenderTransformOrigin="0,0"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TimeOut2 L.png" RenderTransformOrigin="0,0"/>
         <Image Name="TeamTimeOut3L" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TimeOut3 L.png" RenderTransformOrigin="0,0"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TimeOut3 L.png" RenderTransformOrigin="0,0"/>
         <Image Name="TeamTimeOutBar2" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TimeOutBar R.png" RenderTransformOrigin="0,0"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TimeOutBar R.png" RenderTransformOrigin="0,0"/>
         <Image Name="TeamTimeOut1R" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TimeOut1 R.png" RenderTransformOrigin="0,0"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TimeOut1 R.png" RenderTransformOrigin="0,0"/>
         <Image Name="TeamTimeOut2R" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TimeOut2 R.png" RenderTransformOrigin="0,0"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TimeOut2 R.png" RenderTransformOrigin="0,0"/>
         <Image Name="TeamTimeOut3R" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-TimeOut3 R.png" RenderTransformOrigin="0,0"/>
+               Source="/Images/Custom Ticker/Football/Ticker-TimeOut3 R.png" RenderTransformOrigin="0,0"/>
         <Image Name="TickerClock" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-Clock.png" RenderTransformOrigin="0,0" Loaded="ClockLoaded"/>
+               Source="/Images/Custom Ticker/Football/Ticker-Clock.png" RenderTransformOrigin="0,0" Loaded="ClockLoaded"/>
         <Image Name="TickerQuarter" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-Period.png" RenderTransformOrigin="0,0" Loaded="QuarterLoaded"/>
+               Source="/Images/Custom Ticker/Football/Ticker-Period.png" RenderTransformOrigin="0,0" Loaded="QuarterLoaded"/>
         <Image Name="TickerPlay" HorizontalAlignment="Center" Height="112" VerticalAlignment="Center" Width="1100"
-               Source="/Images/Custom Ticker/Ticker-Play.png" RenderTransformOrigin="0,0" Loaded="PlayLoaded"/>
+               Source="/Images/Custom Ticker/Football/Ticker-Play.png" RenderTransformOrigin="0,0" Loaded="PlayLoaded"/>
         
     </Grid>
 </Window>
