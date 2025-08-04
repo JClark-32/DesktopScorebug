@@ -13,8 +13,6 @@ namespace Desktop_Scorebug_WPF
 {
     public partial class NascarTicker : Scoreboard
     {
-        private string division = "cup";
-
         public NascarTicker()
         {
             InitializeComponent();
@@ -23,20 +21,21 @@ namespace Desktop_Scorebug_WPF
         {
             base.OnContentRendered(e);
         }
-        
-        /*
-        private async void SearchButton_Click(object sender, RoutedEventArgs e)
+
+        private async void getNumberCards(string race, int series_id)
         {
-            DriverList.Items.Clear();
-            StatusText.Text = "Fetching data...";
-
-            var targetRace = RaceInput.Text.Trim();
-            Debug.WriteLine(targetRace);
-
-            if (string.IsNullOrWhiteSpace(targetRace))
+            string division = "";
+            switch (series_id)
             {
-                StatusText.Text = "Please enter a race name.";
-                return;
+                case 2:
+                    division = "xfinity";
+                    break;
+                case 3:
+                    division = "truck";
+                    break;
+                default:
+                    division = "cup";
+                    break;
             }
 
             var url = $"https://diecastcharv.com/{division}-number-card-tracker/";
@@ -44,7 +43,7 @@ namespace Desktop_Scorebug_WPF
 
             if (!string.IsNullOrEmpty(htmlContent))
             {
-                var result = ExtractDriverData(htmlContent, targetRace);
+                var result = ExtractDriverData(htmlContent, race);
                 if (result.Any())
                 {
                     foreach (var driver in result)
@@ -58,28 +57,13 @@ namespace Desktop_Scorebug_WPF
                             foreach (var imgUrl in images)
                             {
                                 string filename = $"{driver["Number"]}.jpg";
-                                await DownloadAndSaveImage(imgUrl, targetRace, filename);
-                                DriverList.Items.Add($"{driver["Number"]} - {driverName} - Image saved");
+                                await DownloadAndSaveImage(imgUrl, race, filename);
                             }
                         }
-                        else
-                        {
-                            DriverList.Items.Add($"{driver["Number"]} - {driverName} - No image found");
-                        }
                     }
-                    StatusText.Text = "Done.";
                 }
-                else
-                {
-                    StatusText.Text = "No results found for that race.";
-                }
-            }
-            else
-            {
-                StatusText.Text = "Failed to load page.";
             }
         }
-        */
 
         async Task<string> GetPageContent(string url)
         {
@@ -162,26 +146,6 @@ namespace Desktop_Scorebug_WPF
 
             return driverList;
         }
-
-        /*
-        private void RaceInput_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            Placeholder.Visibility = string.IsNullOrEmpty(RaceInput.Text)
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-        }
-
-        private void RaceInput_GotFocus(object sender, RoutedEventArgs e)
-        {
-            Placeholder.Visibility = Visibility.Collapsed;
-        }
-
-        private void RaceInput_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(RaceInput.Text))
-                Placeholder.Visibility = Visibility.Visible;
-        }
-        */
 
 
         async Task<List<string>> GetSponsorImages(string driverName, string division, string specificSponsor = null)
