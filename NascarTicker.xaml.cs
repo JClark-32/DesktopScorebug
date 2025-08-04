@@ -7,6 +7,11 @@ using System.Windows.Interop;
 using System.Runtime.InteropServices;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using Newtonsoft.Json.Linq;
+using System.Security.Policy;
+using System.Diagnostics;
+using System.Text;
+using System.Text.RegularExpressions;
 
 
 namespace Desktop_Scorebug_WPF
@@ -20,6 +25,61 @@ namespace Desktop_Scorebug_WPF
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             base.OnContentRendered(e);
+            getDriversArray();
+        }
+
+        private async void getDriversArray()
+        {
+            JArray vehicles = await getVehiclesArray(1);
+            JArray drivers = getDrivers(vehicles);
+            Debug.WriteLine(drivers.ToString());
+        }
+
+        private async Task<JArray> getVehiclesArray(int feed)
+        {
+            string url = "";
+            if (feed == 1) url = "https://cf.nascar.com/live/feeds/live-feed.json";
+            if (feed == 2) url = "https://cf.nascar.com/live/feeds/live-feed2.json";
+
+            JObject json = await getJsonfromEndpoint(url);
+            JArray array = (JArray)json["vehicles"];
+            if (array == null)
+                return [];
+            return array;
+        }
+
+        public static string CleanString(string dirtyString)
+        {
+            string noParentheses = Regex.Replace(dirtyString, @"\([^)]*\)", "");
+
+            HashSet<char> removeChars = new HashSet<char>("?&^$#@!+-,:;<>’\'-_*");
+            StringBuilder result = new StringBuilder(noParentheses.Length);
+            foreach (char c in noParentheses)
+                if (!removeChars.Contains(c))
+                    result.Append(c);
+
+            return result.ToString().Trim();
+        }
+
+        private JArray getDrivers(JArray eventsArray)
+        {
+            JArray names = [];
+
+            foreach (JObject eventObj in eventsArray)
+            {
+                // This grabs the "name" property if it exists directly in the event object
+                var driverToken = eventObj["driver"];
+                if (driverToken == null) continue;
+                
+                var driverName = driverToken["last_name"];
+                if (driverToken != null)
+                {
+                    string name = driverName.ToString();
+                    names.Add(CleanString(name));
+                }
+            }
+            //Debug.WriteLine(names.ToString());
+            return names;
         }
 
         private async void getNumberCards(string race, int series_id)
@@ -27,6 +87,9 @@ namespace Desktop_Scorebug_WPF
             string division = "";
             switch (series_id)
             {
+                case 1:
+                    division = "cup";
+                    break;
                 case 2:
                     division = "xfinity";
                     break;
@@ -34,7 +97,7 @@ namespace Desktop_Scorebug_WPF
                     division = "truck";
                     break;
                 default:
-                    division = "cup";
+                    division = "";
                     break;
             }
 

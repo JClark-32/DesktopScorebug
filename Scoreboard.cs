@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using Newtonsoft.Json.Linq;
 
 namespace Desktop_Scorebug_WPF
 {
@@ -255,6 +257,22 @@ namespace Desktop_Scorebug_WPF
             {
                 throw new InvalidOperationException("Image's parent must be a Panel (Grid, StackPanel, etc.)");
             }
+        }
+
+        public static async Task<JObject> getJsonfromEndpoint(string url)
+        {
+            using HttpClient client = new HttpClient();
+            try
+            {
+                string json = await client.GetStringAsync(url);
+                JObject joResponse = JObject.Parse(json);
+                return joResponse;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Request error: {ex.Message}");
+            }
+            return null;
         }
 
         private BitmapSource ConvertToBitmapSource(ImageSource source)

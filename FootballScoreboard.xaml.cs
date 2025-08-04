@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using String = System.String;
 using System.Diagnostics;
 using System.Windows.Threading;
+using System.Security.Policy;
 
 namespace Desktop_Scorebug_WPF
 {
@@ -100,26 +101,10 @@ namespace Desktop_Scorebug_WPF
             return teams;
         }
 
-        private static async Task<JObject> getJsonfromEndpoint(String urlDate, String league)
-        {
-            string url = "https://site.api.espn.com/apis/site/v2/sports/football/"+league+"/scoreboard?dates=" + urlDate;
-            using HttpClient client = new HttpClient();
-            try
-            {
-                string json = await client.GetStringAsync(url);
-                JObject joResponse = JObject.Parse(json);
-                return joResponse;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Request error: {ex.Message}");
-            }
-            return null;
-        }
-
         private async Task<JArray> getEvents(String urlDate, String league)
         {
-            JObject json = await getJsonfromEndpoint(urlDate, league);
+            string url = "https://site.api.espn.com/apis/site/v2/sports/football/" + league + "/scoreboard?dates=" + urlDate;
+            JObject json = await getJsonfromEndpoint(url);
             JArray array = (JArray)json["events"];
             if(array == null) 
                 return [];
