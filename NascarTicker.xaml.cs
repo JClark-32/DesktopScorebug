@@ -1,97 +1,18 @@
 ﻿using HtmlAgilityPack;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using Fastenshtein;
-using System.Diagnostics;
 using System.Windows.Interop;
 using System.Runtime.InteropServices;
 using System.Windows.Media.Animation;
-using System;
-using System.Runtime.InteropServices;
-using System.Windows;
-using System.Windows.Interop;
-using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Controls;
-using System.Windows.Media;
-using System.Drawing;
-using System.Net.Http;
-using System.IO;
-using System.Runtime.InteropServices.JavaScript;
-using System.Security.AccessControl;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using Newtonsoft.Json.Linq;
-using String = System.String;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
-using System.Text.Json;
-using System.Dynamic;
-using System.Text;
 using System.Windows.Threading;
-using System.Xml.Serialization;
+
 
 namespace Desktop_Scorebug_WPF
 {
-    public partial class NascarTicker : Window
+    public partial class NascarTicker : Scoreboard
     {
-        [StructLayout(LayoutKind.Sequential)]
-        public struct POINT
-        {
-            public int X;
-            public int Y;
-        }
-
-        private const int GWL_EXSTYLE = -20;
-        private const int WS_EX_TRANSPARENT = 0x20;
-        private const int WS_EX_LAYERED = 0x80000;
-
-        private CancellationTokenSource _cts = new();
-        private bool isFadingOut = false;
-        private bool isFadingIn = false;
-
-        // P/Invoke declarations
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool GetCursorPos(out POINT lpPoint);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr SetWindowLong(IntPtr hwnd, int nIndex, IntPtr dwNewLong);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetWindowLong(IntPtr hwnd, int nIndex);
-
-        [DllImport("user32.dll")]
-        static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct RECT
-        {
-            public int Left, Top, Right, Bottom;
-        }
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        struct MONITORINFO
-        {
-            public int cbSize;
-            public RECT rcMonitor;
-            public RECT rcWork;
-            public uint dwFlags;
-        }
-
-        const uint MONITOR_DEFAULTTONEAREST = 2;
-
-
-
         private string division = "cup";
 
         public NascarTicker()
@@ -100,9 +21,7 @@ namespace Desktop_Scorebug_WPF
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            CenterTopOnScreen();
-            MakeWindowClickThrough();
-            TrackMouseAsync(_cts.Token);
+            base.OnContentRendered(e);
         }
         
         /*
@@ -161,90 +80,6 @@ namespace Desktop_Scorebug_WPF
             }
         }
         */
-
-        private void CenterTopOnScreen()
-        {
-            var screenWidth = SystemParameters.WorkArea.Width;
-            this.Left = (screenWidth - this.Width) / 2;
-            this.Top = 0;
-        }
-
-        private void MakeWindowClickThrough()
-        {
-            var hwnd = new WindowInteropHelper(this).Handle;
-            var extendedStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
-            SetWindowLong(hwnd, GWL_EXSTYLE,
-                new IntPtr(extendedStyle.ToInt32() | WS_EX_LAYERED | WS_EX_TRANSPARENT));
-        }
-
-        private async void TrackMouseAsync(CancellationToken token)
-        {
-            RECT workArea = GetCurrentMonitorWorkArea();
-
-            while (!token.IsCancellationRequested)
-            {
-                var pos = GetMouseScreenPosition();
-
-                // Check if mouse Y is in top 1/8th of the monitor's work area
-                if (pos.Y >= workArea.Top && pos.Y < workArea.Top + (workArea.Bottom - workArea.Top) / 8
-                    && pos.X >= workArea.Left && pos.X < workArea.Right)
-                {
-                    Dispatcher.Invoke(() => FadeOut());
-                }
-                else
-                {
-                    Dispatcher.Invoke(() => FadeIn());
-                }
-
-                await Task.Delay(50);
-            }
-        }
-
-        private RECT GetCurrentMonitorWorkArea()
-        {
-            var hwnd = new WindowInteropHelper(this).Handle;
-            IntPtr hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
-
-            MONITORINFO monitorInfo = new MONITORINFO();
-            monitorInfo.cbSize = Marshal.SizeOf(typeof(MONITORINFO));
-            GetMonitorInfo(hMonitor, ref monitorInfo);
-
-            return monitorInfo.rcWork;  // This RECT represents the monitor's working area
-        }
-
-        private POINT GetMouseScreenPosition()
-        {
-            GetCursorPos(out POINT point);
-            return point;
-        }
-
-        private void FadeOut()
-        {
-            if (isFadingOut) return;
-            isFadingOut = true;
-            isFadingIn = false;
-
-            var animation = new DoubleAnimation
-            {
-                To = 0.1,
-                Duration = TimeSpan.FromMilliseconds(300)
-            };
-            this.BeginAnimation(Window.OpacityProperty, animation);
-        }
-
-        private void FadeIn()
-        {
-            if (isFadingIn) return;
-            isFadingIn = true;
-            isFadingOut = false;
-
-            var animation = new DoubleAnimation
-            {
-                To = 1.0,
-                Duration = TimeSpan.FromMilliseconds(300)
-            };
-            this.BeginAnimation(Window.OpacityProperty, animation);
-        }
 
         async Task<string> GetPageContent(string url)
         {

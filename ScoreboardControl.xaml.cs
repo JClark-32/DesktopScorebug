@@ -56,7 +56,8 @@ namespace Desktop_Scorebug_WPF
             string yesterdayURLFormatted = DateTime.Today.AddDays(-1).ToString("yyyyMMdd");
             string daySpread = yesterdayURLFormatted + "-" + todayURLFormatted;
 
-            //string urlDate = "20241129";
+            string urlDate = "20241129";
+            daySpread = urlDate;
 
             JArray nflEvents = await getEventsArray(daySpread, "nfl");
             JArray cfbEvents = await getEventsArray(daySpread, "college-football");
