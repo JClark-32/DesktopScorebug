@@ -12,7 +12,10 @@
         <Image Name="Background" HorizontalAlignment="Center" VerticalAlignment="Center" 
                 Source="/Images/Window Overlay.png" RenderTransformOrigin="0,0" Stretch="Fill"/>
         <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="10,0,-10,0">
-        <StackPanel x:Name="ButtonContainer" Orientation="Vertical" MaxWidth="400" HorizontalAlignment="Left"/>
+            <StackPanel Grid.Row="2" Orientation="Vertical">
+                <StackPanel x:Name="MenuBar" Orientation="Horizontal" MaxWidth="400" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <StackPanel Grid.Row="2" x:Name="ButtonContainer" Orientation="Vertical" MaxWidth="400" HorizontalAlignment="Left"/>
+            </StackPanel>
         </ScrollViewer>
     </Grid>
 </Window>

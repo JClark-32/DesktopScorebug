@@ -69,10 +69,12 @@ namespace Desktop_Scorebug_WPF
 
             //CreateButtonsFromJArray(getActiveArray(nflArray, nflEvents), "nfl", daySpread);
             //CreateButtonsFromJArray(getActiveArray(cfbArray, cfbEvents), "college-football", daySpread);
-            CreateRefreshButton();
+     
             CreateButtonsFromJArray(nflArray, nflEvents, "nfl", daySpread);
             CreateButtonsFromJArray(cfbArray, cfbEvents, "college-football", daySpread);
             CreateButtonsFromJArray(["Testing"], [], "nascar", daySpread);
+
+            CreateRefreshButton();
         }
 
         private JArray getActiveArray(JArray namesArray, JArray eventsArray)
@@ -164,26 +166,32 @@ namespace Desktop_Scorebug_WPF
 
         private void CreateRefreshButton()
         {
-            Button button = new Button
+            if (MenuBar.Children.Count == 0)
             {
-                Content = "↻",
-                FontWeight = FontWeights.Bold,
-                FontSize = 20,
-                Margin = new Thickness(5),
-                Padding = new Thickness(10),
-                MaxWidth = 50,
-                MinWidth = 20,
-                Background = new SolidColorBrush(Color.FromRgb(50, 50, 50)),
-                Foreground = Brushes.White,
-                Tag = "Refresh"
-            };
 
-            button.Click += (sender, e) =>
-            {
-                RefreshClick();
-            };
+                Button button = new Button
+                {
+                    Name = "refreshButton",
+                    Content = "↻",
+                    FontWeight = FontWeights.Bold,
+                    FontSize = 20,
+                    Margin = new Thickness(5),
+                    Padding = new Thickness(10),
+                    MaxWidth = 50,
+                    MinWidth = 20,
+                    Background = new SolidColorBrush(Color.FromRgb(50, 50, 50)),
+                    Foreground = Brushes.White,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    Tag = "Refresh"
+                };
 
-                ButtonContainer.Children.Add(button);
+                button.Click += (sender, e) =>
+                {
+                    RefreshClick();
+                };
+
+                MenuBar.Children.Add(button);
+            }
         }
 
         private async void CreateButtonsFromJArray(JArray jsonArray, JArray eventsArray, string league, string date)
@@ -257,6 +265,37 @@ namespace Desktop_Scorebug_WPF
                             _ticker.Closed += (s, args) => _ticker = null;
                             _ticker.Show();
                         }
+
+                        Button closeButton = new Button
+                        {
+                            Name = "closeButton",
+                            Content = "Close",
+                            Margin = new Thickness(5),
+                            Padding = new Thickness(10),
+                            MaxWidth = 500,
+                            MinWidth = 20,
+                            Background = new SolidColorBrush(Color.FromRgb(50, 50, 50)),
+                            Foreground = Brushes.White
+                        };
+
+                        if (MenuBar.Children.Count != 2)
+                        {
+                            Debug.WriteLine(MenuBar.Children[0]);
+                            MenuBar.Children.Add(closeButton);
+                        }
+
+                        closeButton.Click += (sender, e) =>
+                        {
+                            if (_scoreboard != null)
+                            {
+                                _scoreboard.Close();
+                            }
+                            if (_ticker != null)
+                            {
+                                _ticker.Close();
+                            }
+                            MenuBar.Children.Remove(closeButton);
+                        };
                     };
 
                     TextBlock LiveText = new TextBlock
