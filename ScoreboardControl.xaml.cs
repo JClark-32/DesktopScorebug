@@ -5,6 +5,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,6 +17,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Newtonsoft.Json.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Desktop_Scorebug_WPF
 {
@@ -57,7 +59,7 @@ namespace Desktop_Scorebug_WPF
             string daySpread = yesterdayURLFormatted + "-" + todayURLFormatted;
 
             string urlDate = "20241129";
-            daySpread = urlDate;
+            //daySpread = urlDate;
 
             JArray nflEvents = await getEventsArray(daySpread, "nfl");
             JArray cfbEvents = await getEventsArray(daySpread, "college-football");
@@ -67,9 +69,10 @@ namespace Desktop_Scorebug_WPF
 
             //CreateButtonsFromJArray(getActiveArray(nflArray, nflEvents), "nfl", daySpread);
             //CreateButtonsFromJArray(getActiveArray(cfbArray, cfbEvents), "college-football", daySpread);
-            CreateButtonsFromJArray(nflArray, "nfl", daySpread);
-            CreateButtonsFromJArray(cfbArray, "college-football", daySpread);
-            CreateButtonsFromJArray(["Testing"], "nascar", daySpread);
+            CreateRefreshButton();
+            CreateButtonsFromJArray(nflArray, nflEvents, "nfl", daySpread);
+            CreateButtonsFromJArray(cfbArray, cfbEvents, "college-football", daySpread);
+            CreateButtonsFromJArray(["Testing"], [], "nascar", daySpread);
         }
 
         private JArray getActiveArray(JArray namesArray, JArray eventsArray)
@@ -159,7 +162,31 @@ namespace Desktop_Scorebug_WPF
             return array;
         }
 
-        private void CreateButtonsFromJArray(JArray jsonArray, string league, string date)
+        private void CreateRefreshButton()
+        {
+            Button button = new Button
+            {
+                Content = "↻",
+                FontWeight = FontWeights.Bold,
+                FontSize = 20,
+                Margin = new Thickness(5),
+                Padding = new Thickness(10),
+                MaxWidth = 50,
+                MinWidth = 20,
+                Background = new SolidColorBrush(Color.FromRgb(50, 50, 50)),
+                Foreground = Brushes.White,
+                Tag = "Refresh"
+            };
+
+            button.Click += (sender, e) =>
+            {
+                RefreshClick();
+            };
+
+                ButtonContainer.Children.Add(button);
+        }
+
+        private async void CreateButtonsFromJArray(JArray jsonArray, JArray eventsArray, string league, string date)
         {
             if (jsonArray.Count != 0)
             {
@@ -191,6 +218,10 @@ namespace Desktop_Scorebug_WPF
                 foreach (var token in jsonArray)
                 {
                     string text = token.ToString();
+                    StackPanel buttonGrid = new StackPanel
+                    {
+                        Orientation = Orientation.Horizontal
+                    };
 
                     Button button = new Button
                     {
@@ -228,12 +259,34 @@ namespace Desktop_Scorebug_WPF
                         }
                     };
 
-                    ButtonContainer.Children.Add(button);
+                    TextBlock LiveText = new TextBlock
+                    {
+                        Margin = new Thickness(5),
+                        Padding = new Thickness(10),
+                        MaxWidth = 500,
+                        MinWidth = 20,
+                        Text = "⦿ Live",
+                        FontSize = 15,
+                        FontWeight = FontWeights.Bold,
+                        Foreground = Brushes.Red
+                    };
+
+                    buttonGrid.Children.Add(button);
+                    if (getMatchStatus(text, eventsArray).Equals("true")){
+                        if(!league.Equals("nascar"))
+                        buttonGrid.Children.Add(LiveText);
+                    }
+
+                    ButtonContainer.Children.Add(buttonGrid);
                 }
             }
         }
 
-
+        private void RefreshClick()
+        {
+            ButtonContainer.Children.Clear();
+            createButtons();
+        }
 
 
         private static async Task<JObject> getJsonfromEndpoint(String urlDate, String league)

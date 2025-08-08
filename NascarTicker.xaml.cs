@@ -30,22 +30,22 @@ namespace Desktop_Scorebug_WPF
 
         private async void getDriversArray()
         {
-            JArray vehicles = await getVehiclesArray(1);
-            JArray drivers = getDrivers(vehicles);
+            JObject feed = await getVehiclesArray(1);
+            JArray drivers = getDrivers(feed);
+            string flag_state = getFlagState(feed);
+
             Debug.WriteLine(drivers.ToString());
+            Debug.WriteLine(flag_state);
         }
 
-        private async Task<JArray> getVehiclesArray(int feed)
+        private async Task<JObject> getVehiclesArray(int feed)
         {
             string url = "";
             if (feed == 1) url = "https://cf.nascar.com/live/feeds/live-feed.json";
             if (feed == 2) url = "https://cf.nascar.com/live/feeds/live-feed2.json";
 
             JObject json = await getJsonfromEndpoint(url);
-            JArray array = (JArray)json["vehicles"];
-            if (array == null)
-                return [];
-            return array;
+            return json;
         }
 
         public static string CleanString(string dirtyString)
@@ -61,11 +61,13 @@ namespace Desktop_Scorebug_WPF
             return result.ToString().Trim();
         }
 
-        private JArray getDrivers(JArray eventsArray)
+        private JArray getDrivers(JObject json)
         {
+            JArray array = (JArray)json["vehicles"];
+
             JArray names = [];
 
-            foreach (JObject eventObj in eventsArray)
+            foreach (JObject eventObj in array)
             {
                 // This grabs the "name" property if it exists directly in the event object
                 var driverToken = eventObj["driver"];
@@ -80,6 +82,18 @@ namespace Desktop_Scorebug_WPF
             }
             //Debug.WriteLine(names.ToString());
             return names;
+        }
+
+        private string getFlagState(JObject json)
+        {
+            string state = "";
+
+            var flag_state = json["flag_state"];
+
+            if (flag_state != null)
+                state = flag_state.ToString();
+
+            return state;
         }
 
         private async void getNumberCards(string race, int series_id)
