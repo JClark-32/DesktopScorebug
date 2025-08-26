@@ -12,31 +12,47 @@ using System.Security.Policy;
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using System.Dynamic;
 
 
 namespace Desktop_Scorebug_WPF
 {
     public partial class NascarTicker : Scoreboard
     {
+        
         public NascarTicker()
         {
             InitializeComponent();
         }
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            JArray drivers = [];
+
+            getNumberCards("Daytona 2", 1);
             base.OnContentRendered(e);
-            getDriversArray();
+            drivers = await getRaceStateArray();
         }
 
-        private async void getDriversArray()
+        private async Task<JArray> getRaceStateArray()
         {
             JObject feed = await getVehiclesArray(1);
             JArray drivers = getDrivers(feed);
-            string flag_state = getFlagState(feed);
 
             Debug.WriteLine(drivers.ToString());
-            Debug.WriteLine(flag_state);
+
+            return drivers;
         }
+
+        private async void updateFlagState()
+        {
+            JObject feed = await getVehiclesArray(1);
+            changeFlagColor(feed);
+        }
+
 
         private async Task<JObject> getVehiclesArray(int feed)
         {
@@ -82,6 +98,36 @@ namespace Desktop_Scorebug_WPF
             }
             //Debug.WriteLine(names.ToString());
             return names;
+        }
+
+        private async Task<JArray> getNumbersArray()
+        {
+            JObject feed = await getVehiclesArray(1);
+
+            JArray array = (JArray)feed["vehicles"];
+
+            JArray numbers = [];
+
+            foreach (JObject eventObj in array)
+            {
+                // This grabs the "name" property if it exists directly in the event object
+                var driverNumber = eventObj["vehicle_number"];
+                if (driverNumber == null) continue;
+
+                numbers.Add(driverNumber);
+            }
+            //Debug.WriteLine(names.ToString());
+            return numbers;
+        }
+
+        private string getDriverAtPosition(JArray Drivers, int position)
+        {
+            return Drivers[position - 1].ToString();
+        }
+
+        private string getNumber(JArray Numbers, int position)
+        {
+            return Numbers[position-1].ToString();
         }
 
         private string getFlagState(JObject json)
@@ -134,11 +180,25 @@ namespace Desktop_Scorebug_WPF
                             foreach (var imgUrl in images)
                             {
                                 string filename = $"{driver["Number"]}.jpg";
-                                await DownloadAndSaveImage(imgUrl, race, filename);
+                                await DownloadAndSaveImage(imgUrl, "C:\\Users\\Jacob\\Desktop\\Desktop Scorebug WPF\\Desktop Scorebug WPF\\Images\\Temp\\", filename);
                             }
                         }
                     }
                 }
+            }
+        }
+
+        private void changeFlagColor(JObject feed)
+        {
+            string state = getFlagState(feed);
+
+            switch(state){
+                case "1":
+                    RecolorImageWithAlpha(TickerFlag, System.Drawing.ColorTranslator.FromHtml("#00b509"));
+                    break;
+                default:
+                    break;
+
             }
         }
 
@@ -287,22 +347,28 @@ namespace Desktop_Scorebug_WPF
         {
             try
             {
-                if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+                // Convert relative path to absolute path
+                var fullDirectory = System.IO.Path.GetFullPath(directory);
+
+                if (!Directory.Exists(fullDirectory))
+                    Directory.CreateDirectory(fullDirectory);
 
                 using var client = new HttpClient();
                 var data = await client.GetAsync(url);
                 data.EnsureSuccessStatusCode();
 
-                var path = Path.Combine(directory, filename);
+                var path = System.IO.Path.Combine(fullDirectory, filename);
                 await using var stream = await data.Content.ReadAsStreamAsync();
                 await using var fs = new FileStream(path, FileMode.Create);
                 await stream.CopyToAsync(fs);
             }
             catch (Exception e)
             {
-                //StatusText.Text = $"Image error: {e.Message}";
+                // Handle error as needed
+                // e.g., log it or display it
             }
         }
+
 
         string BestMatch(string sponsor, IEnumerable<string> sponsorList)
         {
@@ -325,6 +391,84 @@ namespace Desktop_Scorebug_WPF
             var matcher = new Levenshtein(a);
             var dist = matcher.DistanceFrom(b);
             return 1.0 - (double)dist / Math.Max(a.Length, b.Length);
+        }
+
+        private async void P1NameLoaded(object sender, RoutedEventArgs e)
+        {
+            string p1Name = "";
+
+            JObject feed = await getVehiclesArray(1);
+            JArray drivers = getDrivers(feed);
+
+            p1Name = getDriverAtPosition(drivers, 1);
+
+            ReplaceSquareInImageWithTextBox(TickerP1Name, "P1Name");
+
+            TextBox found = (TextBox)Podium.Children
+                .OfType<TextBox>()
+                .FirstOrDefault(tb => tb.Name == "P1Name");
+            if (found != null)
+
+            {
+                found.Text = p1Name;
+                AddTextOutline(found, Colors.Black, 10.0);
+            }
+        }
+        private async void P1NumberLoaded(object sender, RoutedEventArgs e)
+        {
+            string number = getNumber(await getNumbersArray(), 1);
+
+            string imagePath = "C:\\Users\\Jacob\\Desktop\\Desktop Scorebug WPF\\Desktop Scorebug WPF\\Images\\Temp\\#" + number +".jpg";
+            BitmapImage fillBitmap = new BitmapImage();
+
+            fillBitmap.BeginInit();
+            fillBitmap.UriSource = new Uri(imagePath, UriKind.Absolute);
+            fillBitmap.CacheOption = BitmapCacheOption.OnLoad;      
+            fillBitmap.EndInit();
+            fillBitmap.Freeze();
+
+            FillImageWithImageMaskWidthBased(TickerP1Number, new Image { Source = fillBitmap });
+        }
+
+        private async void P1TimingLoaded(object sender, RoutedEventArgs e)
+        {
+            ReplaceSquareInImageWithTextBox(TickerP1Timing, "P1Timing");
+
+            TextBox found = (TextBox)Podium.Children
+                .OfType<TextBox>()
+                .FirstOrDefault(tb => tb.Name == "P1Timing");
+            if (found != null)
+
+            {
+                found.Text = "";
+                AddTextOutline(found, Colors.Black, 10.0);
+            }
+        }
+        protected override void OnClosed(EventArgs e)
+        {
+            string folderPath = "C:\\Users\\Jacob\\Desktop\\Desktop Scorebug WPF\\Desktop Scorebug WPF\\Images\\Temp";
+
+            if (Directory.Exists(folderPath))
+            {
+                // Delete all files
+                foreach (string file in Directory.GetFiles(folderPath))
+                {
+                    File.Delete(file);
+                }
+
+                // Delete all subdirectories (and their contents)
+                foreach (string dir in Directory.GetDirectories(folderPath))
+                {
+                    Directory.Delete(dir, true); // true = recursive
+                }
+
+                Console.WriteLine("Folder contents wiped successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Folder not found.");
+            }
+            base.OnClosed(e);
         }
     }
 }

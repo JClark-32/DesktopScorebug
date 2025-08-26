@@ -332,6 +332,101 @@ namespace Desktop_Scorebug_WPF
             targetImage.Source = recoloredBitmap;
         }
 
+        public void FillImageWithImageMaskWidthBased(Image targetImage, Image fillImage)
+        {
+            if (targetImage.Source is not BitmapSource shapeBitmap)
+                throw new InvalidOperationException("The target Image does not contain a valid BitmapSource.");
+            if (fillImage.Source is not BitmapSource fillBitmap)
+                throw new InvalidOperationException("The fill Image does not contain a valid BitmapSource.");
+
+            int shapeWidth = shapeBitmap.PixelWidth;
+            int shapeHeight = shapeBitmap.PixelHeight;
+            int stride = shapeWidth * 4;
+
+            // Convert shape to BGRA32
+            var shapeFormatted = new FormatConvertedBitmap(shapeBitmap, PixelFormats.Bgra32, null, 0);
+            byte[] shapePixels = new byte[shapeHeight * stride];
+            shapeFormatted.CopyPixels(shapePixels, stride, 0);
+
+            // Find bounding box of visible (non-transparent) pixels
+            int minX = shapeWidth, minY = shapeHeight, maxX = 0, maxY = 0;
+            for (int y = 0; y < shapeHeight; y++)
+            {
+                for (int x = 0; x < shapeWidth; x++)
+                {
+                    int i = (y * shapeWidth + x) * 4;
+                    byte alpha = shapePixels[i + 3];
+                    if (alpha > 0)
+                    {
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
+                    }
+                }
+            }
+
+            if (minX >= maxX || minY >= maxY)
+                return;
+
+            int boxWidth = maxX - minX + 1;
+            int boxHeight = maxY - minY + 1;
+
+            // Scale fill image proportionally based only on width
+            double scale = (double)boxWidth / fillBitmap.PixelWidth;
+            int scaledWidth = (int)(fillBitmap.PixelWidth * scale);
+            int scaledHeight = (int)(fillBitmap.PixelHeight * scale);
+
+            int offsetX = minX + (boxWidth - scaledWidth) / 2;
+            int offsetY = minY + (boxHeight - scaledHeight) / 2;
+
+            // Scale the fill image
+            var scaledFill = new TransformedBitmap(fillBitmap, new ScaleTransform(scale, scale));
+            var fillFormatted = new FormatConvertedBitmap(scaledFill, PixelFormats.Bgra32, null, 0);
+
+            byte[] fillPixels = new byte[scaledHeight * scaledWidth * 4];
+            int fillStride = scaledWidth * 4;
+            fillFormatted.CopyPixels(fillPixels, fillStride, 0);
+
+            // Prepare transparent output buffer
+            byte[] finalPixels = new byte[shapeHeight * stride];
+
+            // Blend fill image with shape alpha
+            for (int y = 0; y < scaledHeight; y++)
+            {
+                for (int x = 0; x < scaledWidth; x++)
+                {
+                    int destX = offsetX + x;
+                    int destY = offsetY + y;
+
+                    if (destX < 0 || destX >= shapeWidth || destY < 0 || destY >= shapeHeight)
+                        continue;
+
+                    int srcIndex = (y * scaledWidth + x) * 4;
+                    int dstIndex = (destY * shapeWidth + destX) * 4;
+
+                    byte shapeAlpha = shapePixels[dstIndex + 3];
+                    byte fillAlpha = fillPixels[srcIndex + 3];
+
+                    if (shapeAlpha == 0) continue; // keep transparent
+
+                    // Combine alpha (multiply mask alpha with fill alpha)
+                    double alphaFactor = shapeAlpha / 255.0 * fillAlpha / 255.0;
+
+                    finalPixels[dstIndex + 0] = (byte)(fillPixels[srcIndex + 0] * alphaFactor);
+                    finalPixels[dstIndex + 1] = (byte)(fillPixels[srcIndex + 1] * alphaFactor);
+                    finalPixels[dstIndex + 2] = (byte)(fillPixels[srcIndex + 2] * alphaFactor);
+                    finalPixels[dstIndex + 3] = (byte)(255 * alphaFactor);
+                }
+            }
+
+            WriteableBitmap result = new WriteableBitmap(shapeWidth, shapeHeight, 96, 96, PixelFormats.Bgra32, null);
+            result.WritePixels(new Int32Rect(0, 0, shapeWidth, shapeHeight), finalPixels, stride, 0);
+
+            targetImage.Source = result;
+        }
+
+
         public void FillImageWithImageMask(Image targetImage, Image fillImage)
         {
             if (targetImage.Source is not BitmapSource shapeBitmap)
