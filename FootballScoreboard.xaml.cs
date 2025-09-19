@@ -49,6 +49,18 @@ namespace Desktop_Scorebug_WPF
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             base.OnContentRendered(e);
+
+            if (league.Equals("college-football"))
+            {
+                TeamTimeOut1L.Visibility = Visibility.Hidden;
+                TeamTimeOut2L.Visibility = Visibility.Hidden;
+                TeamTimeOut3L.Visibility = Visibility.Hidden;
+                TeamTimeOut1R.Visibility = Visibility.Hidden;
+                TeamTimeOut2R.Visibility = Visibility.Hidden;
+                TeamTimeOut3R.Visibility = Visibility.Hidden;
+                TeamTimeOutBar1.Visibility = Visibility.Hidden;
+                TeamTimeOutBar2.Visibility = Visibility.Hidden;
+            }
             //Debug.WriteLine(DateTime.Now.ToString("H,m"));
         }
 
@@ -503,8 +515,15 @@ namespace Desktop_Scorebug_WPF
                 PosessionL.Visibility = Visibility.Hidden;
             }
 
-            updateTimeoutScoreboard(0, events);
-            updateTimeoutScoreboard(1, events);
+            if(league == "nfl")
+            {
+                updateTimeoutScoreboard(0, events);
+                updateTimeoutScoreboard(1, events);
+            }
+            else
+            {
+                
+            }
         }
 
         private async Task<string?> getPeriod(String Matchup, JArray eventsArray)

@@ -17,22 +17,78 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Dynamic;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace Desktop_Scorebug_WPF
 {
     public partial class NascarTicker : Scoreboard
     {
-        
+        private DispatcherTimer _timer;
+
         public NascarTicker()
         {
             InitializeComponent();
+            InitializeTimer();
         }
+
+        private void InitializeTimer()
+        {
+            _timer = new DispatcherTimer();
+            _timer.Interval = TimeSpan.FromSeconds(10);
+            _timer.Tick += Timer_Tick;
+            _timer.Start();
+        }
+
+        private async void Timer_Tick(object sender, EventArgs e)
+        {
+            string imagePath = "C:\\Users\\Jacob\\Desktop\\Desktop Scorebug WPF\\Desktop Scorebug WPF\\Images\\Temp\\#19.jpg";
+            BitmapImage fillBitmap = new BitmapImage();
+
+            updateFlagState();
+
+            if (File.Exists(imagePath))
+            {
+                fillBitmap.BeginInit();
+                fillBitmap.UriSource = new Uri(imagePath, UriKind.Absolute);
+                fillBitmap.CacheOption = BitmapCacheOption.OnLoad;
+                fillBitmap.EndInit();
+                fillBitmap.Freeze();
+            }
+            else
+            {
+                fillBitmap = await getDefaultImageAsync(12);
+            }
+
+            FillImageWithImageMaskWidthBased(TickerP1Number, new Image { Source = fillBitmap });
+        }
+
+        private async Task<BitmapImage> getDefaultImageAsync(int number)
+        {
+            BitmapImage fillBitmap = new BitmapImage();
+
+            using HttpClient httpClient = new();
+
+            byte[] imageBytes = await httpClient.GetByteArrayAsync("https://cf.nascar.com/data/images/carbadges/1/" + 19 + ".png");
+
+            using (var stream = new MemoryStream(imageBytes))
+            {
+                fillBitmap.BeginInit();
+                fillBitmap.CacheOption = BitmapCacheOption.OnLoad;
+                fillBitmap.StreamSource = stream;
+                fillBitmap.EndInit();
+                fillBitmap.Freeze(); // Optional but useful for threading
+            }
+
+            return fillBitmap;
+        }
+
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             JArray drivers = [];
 
-            getNumberCards("Daytona 2", 1);
+            getNumberCards("Darlington 2", 1);
+            
             base.OnContentRendered(e);
             drivers = await getRaceStateArray();
         }
@@ -192,11 +248,22 @@ namespace Desktop_Scorebug_WPF
         {
             string state = getFlagState(feed);
 
+            /*
+             * 1: Green Flag
+             * 2: Yellow Flag
+             * 3: Red Flag -- Unconfirmed
+             * 19: Checkard Flag
+             */
+
             switch(state){
                 case "1":
                     RecolorImageWithAlpha(TickerFlag, System.Drawing.ColorTranslator.FromHtml("#00b509"));
                     break;
+                case "2":
+                    RecolorImageWithAlpha(TickerFlag, System.Drawing.ColorTranslator.FromHtml("#ffea00"));
+                    break;
                 default:
+                    //TODO: ADD REMOVE RECOLOR FUNCTION TO REVERT BACK TO CHECKARD FLAG TEXTURE
                     break;
 
             }
@@ -421,13 +488,16 @@ namespace Desktop_Scorebug_WPF
             string imagePath = "C:\\Users\\Jacob\\Desktop\\Desktop Scorebug WPF\\Desktop Scorebug WPF\\Images\\Temp\\#" + number +".jpg";
             BitmapImage fillBitmap = new BitmapImage();
 
-            fillBitmap.BeginInit();
-            fillBitmap.UriSource = new Uri(imagePath, UriKind.Absolute);
-            fillBitmap.CacheOption = BitmapCacheOption.OnLoad;      
-            fillBitmap.EndInit();
-            fillBitmap.Freeze();
+            if (File.Exists(imagePath))
+            {
+                fillBitmap.BeginInit();
+                fillBitmap.UriSource = new Uri(imagePath, UriKind.Absolute);
+                fillBitmap.CacheOption = BitmapCacheOption.OnLoad;
+                fillBitmap.EndInit();
+                fillBitmap.Freeze();
 
-            FillImageWithImageMaskWidthBased(TickerP1Number, new Image { Source = fillBitmap });
+                FillImageWithImageMaskWidthBased(TickerP1Number, new Image { Source = fillBitmap });
+            }
         }
 
         private async void P1TimingLoaded(object sender, RoutedEventArgs e)
