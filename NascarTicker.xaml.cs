@@ -18,6 +18,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Dynamic;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Xml.Linq;
 
 
 namespace Desktop_Scorebug_WPF
@@ -42,7 +43,12 @@ namespace Desktop_Scorebug_WPF
 
         private async void Timer_Tick(object sender, EventArgs e)
         {
-            string imagePath = "C:\\Users\\Jacob\\Desktop\\Desktop Scorebug WPF\\Desktop Scorebug WPF\\Images\\Temp\\#19.jpg";
+            //JObject json = await getVehiclesArray(1);
+            JArray numbersArray = await getNumbersArray();
+            string first = GetNumberAtPosition(numbersArray, 1);
+
+
+            string imagePath = "C:\\Users\\Jacob\\Desktop\\Desktop Scorebug WPF\\Desktop Scorebug WPF\\Images\\Temp\\#"+first+".jpg";
             BitmapImage fillBitmap = new BitmapImage();
 
             updateFlagState();
@@ -87,7 +93,7 @@ namespace Desktop_Scorebug_WPF
         {
             JArray drivers = [];
 
-            getNumberCards("Darlington 2", 1);
+            getNumberCards("New Hampshire", 1);
             
             base.OnContentRendered(e);
             drivers = await getRaceStateArray();
@@ -351,6 +357,14 @@ namespace Desktop_Scorebug_WPF
             return driverList;
         }
 
+        private string GetNumberAtPosition(JArray numbersArray, int position)
+        {
+            string number = "";
+
+            number = numbersArray[position - 1].ToString();
+
+            return number;
+        }
 
         async Task<List<string>> GetSponsorImages(string driverName, string division, string specificSponsor = null)
         {
