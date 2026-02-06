@@ -154,6 +154,31 @@ namespace Desktop_Scorebug_WPF
                 var competition = competitions[0] as JObject;
                 //if (competition == null) continue;
 
+                var competitors = competition["competitors"] as JArray;
+                //if (competitors == null) continue;
+
+                var competitor1 = competitors[0] as JObject;
+                //if (competitor1 == null) continue;
+
+                var team1 = competitor1["team"] as JObject;
+                //if (team1 == null) continue;
+
+                var abbrv1 = team1["abbreviation"].ToString();
+
+                var competitor1Score = competitor1["score"].ToString();
+
+                var competitor2 = competitors[1] as JObject;
+                //if (competitor2 == null) continue;
+
+                var team2 = competitor2["team"] as JObject;
+                //if (team1 == null) continue;
+
+                var abbrv2 = team2["abbreviation"].ToString();
+
+                var competitor2Score = competitor2["score"].ToString();
+
+                preview = abbrv1 + " " + competitor1Score + " vs " + competitor2Score + " " + abbrv2;
+
                 break;
             }
             return preview;
@@ -347,6 +372,8 @@ namespace Desktop_Scorebug_WPF
                         if(!league.Equals("nascar"))
                         buttonGrid.Children.Add(LiveText);
                     }
+                    GamePreview.Text = getGamePreview(text, eventsArray);
+
                     buttonGrid.Children.Add(GamePreview);
 
                     ButtonContainer.Children.Add(buttonGrid);
