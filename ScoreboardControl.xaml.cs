@@ -58,8 +58,8 @@ namespace Desktop_Scorebug_WPF
             string yesterdayURLFormatted = DateTime.Today.AddDays(-1).ToString("yyyyMMdd");
             string daySpread = yesterdayURLFormatted + "-" + todayURLFormatted;
 
-            string urlDate = "20241129";
-            //daySpread = urlDate;
+            string urlDate = "20260119";
+            daySpread = urlDate;
 
             JArray nflEvents = await getEventsArray(daySpread, "nfl");
             JArray cfbEvents = await getEventsArray(daySpread, "college-football");
@@ -84,18 +84,18 @@ namespace Desktop_Scorebug_WPF
             foreach (var Event in namesArray)
             {
                 string gameName = Event.ToString();
-                if (getMatchStatus(gameName, eventsArray).Equals("true")){
+                if (getLiveStatus(gameName, eventsArray).Equals("true")){
                     activeArray.Add(gameName);
                 }
                 else
                 {
-                    Debug.WriteLine(getMatchStatus(gameName, eventsArray).ToString());
+                    Debug.WriteLine(getLiveStatus(gameName, eventsArray).ToString());
                 }
             }
             return activeArray;
         }
 
-        private string getMatchStatus(String Matchup, JArray eventsArray)
+        private string getLiveStatus(String Matchup, JArray eventsArray)
         {
             string active = "true";
 
@@ -105,10 +105,10 @@ namespace Desktop_Scorebug_WPF
                 if (name != Matchup)
                     continue;
 
-                var competitors = eventObj["competitions"] as JArray;
+                var competitions = eventObj["competitions"] as JArray;
                 //if (competitors == null) continue;
 
-                var competition = competitors[0] as JObject;
+                var competition = competitions[0] as JObject;
                 //if (competition == null) continue;
                 var status = competition["status"] as JObject;
                 //if (status == null) continue;
@@ -138,6 +138,26 @@ namespace Desktop_Scorebug_WPF
             return active;
         }
 
+        private string getGamePreview(String Matchup, JArray eventsArray)
+        {
+            string preview = "";
+
+            foreach (JObject eventObj in eventsArray)
+            {
+                string name = eventObj["name"]?.ToString();
+                if (name != Matchup)
+                    continue;
+
+                var competitions = eventObj["competitions"] as JArray;
+                //if (competitors == null) continue;
+
+                var competition = competitions[0] as JObject;
+                //if (competition == null) continue;
+
+                break;
+            }
+            return preview;
+        }
         private JArray getEventNames(JArray eventsArray)
         {
             JArray names = [];
@@ -310,11 +330,24 @@ namespace Desktop_Scorebug_WPF
                         Foreground = Brushes.Red
                     };
 
+                    TextBlock GamePreview = new TextBlock
+                    {
+                        Margin = new Thickness(5),
+                        Padding = new Thickness(10),
+                        MaxWidth = 500,
+                        MinWidth = 20,
+                        Text = "",
+                        FontSize = 15,
+                        FontWeight = FontWeights.Bold,
+                        Foreground = Brushes.White
+                    };
+
                     buttonGrid.Children.Add(button);
-                    if (getMatchStatus(text, eventsArray).Equals("true")){
+                    if (getLiveStatus(text, eventsArray).Equals("true")){
                         if(!league.Equals("nascar"))
                         buttonGrid.Children.Add(LiveText);
                     }
+                    buttonGrid.Children.Add(GamePreview);
 
                     ButtonContainer.Children.Add(buttonGrid);
                 }

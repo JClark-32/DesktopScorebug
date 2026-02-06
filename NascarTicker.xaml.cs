@@ -75,7 +75,7 @@ namespace Desktop_Scorebug_WPF
 
             using HttpClient httpClient = new();
 
-            byte[] imageBytes = await httpClient.GetByteArrayAsync("https://cf.nascar.com/data/images/carbadges/1/" + 19 + ".png");
+            byte[] imageBytes = await httpClient.GetByteArrayAsync("https://cf.nascar.com/data/images/carbadges/1/" + 60 + ".png");
 
             using (var stream = new MemoryStream(imageBytes))
             {
@@ -372,8 +372,8 @@ namespace Desktop_Scorebug_WPF
             {
                 driverName = driverName.Replace(" ", "-").ToLower();
                 var url = driverName != "rajah-caruth"
-                    ? $"https://diecastcharv.com/2025-{driverName}-{division}-number-cards/"
-                    : $"https://diecastcharv.com/2025-{driverName}-{division}-number-cads/";
+                    ? $"https://diecastcharv.com/2026-{driverName}-{division}-number-cards/"
+                    : $"https://diecastcharv.com/2026-{driverName}-{division}-number-cads/";
 
                 using var client = new HttpClient();
                 var response = await client.GetAsync(url);
